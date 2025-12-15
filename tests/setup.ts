@@ -15,5 +15,7 @@ afterEach(() => {
 vi.mock('./firebaseConfig', () => ({
     auth: {},
     db: {},
-    storage: {}
+    storage: {},
+    firebaseReady: Promise.resolve({}),
+    mountConfigWarning: () => {}
 }));
