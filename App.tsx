@@ -138,7 +138,7 @@ function App() {
             )}
 
             {/* Main Content Area with Lazy Loading */}
-            <main className="max-w-screen-2xl mx-auto px-4 py-6 flex-1 w-full pb-20 print:p-0 print:pb-0 print:max-w-none">
+            <main className="max-w-screen-2xl mx-auto px-4 pt-4 pb-20 flex-1 w-full print:p-0 print:pb-0 print:max-w-none">
               <ErrorBoundary>
                 <Suspense fallback={<ViewLoader />}>
                   {isSignatureMode ? (

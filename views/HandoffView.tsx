@@ -160,10 +160,10 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     const Icon = isMedical ? Stethoscope : MessageSquare;
     const headerColor = isMedical ? 'text-purple-600' : 'text-medical-600';
     const tableHeaderClass = isMedical
-        ? "bg-purple-800 text-white text-xs uppercase tracking-wider font-bold"
+        ? "bg-purple-100 text-purple-900 text-xs uppercase tracking-wider font-semibold border-b border-purple-100"
         : selectedShift === 'day'
-            ? "bg-indigo-700 text-white text-xs uppercase tracking-wider font-bold"
-            : "bg-slate-800 text-white text-xs uppercase tracking-wider font-bold";
+            ? "bg-medical-50 text-medical-900 text-xs uppercase tracking-wider font-semibold border-b border-medical-100"
+            : "bg-slate-100 text-slate-800 text-xs uppercase tracking-wider font-semibold border-b border-slate-200";
 
     // Staff lists - Auto-populate from census if handoff-specific lists are empty
     const deliversList = useMemo(() => {
@@ -200,7 +200,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     }
 
     return (
-        <div className="space-y-6 animate-fade-in pb-20 font-sans max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 print:max-w-none print:w-full print:px-0">
+        <div className="space-y-4 animate-fade-in pb-20 font-sans max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 print:max-w-none print:w-full print:px-0">
             {/* Print-only Header */}
             <div className="hidden print:block mb-4 pb-4 border-b-2 border-slate-800">
                 <div className="flex justify-between items-start mb-4">
@@ -339,14 +339,14 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
 
             {/* Medical Handoff Header (Doctor to Doctor) */}
             {isMedical && (
-                <div className="mb-6 bg-white p-4 rounded-xl border border-blue-100 shadow-sm print:shadow-none print:border-none print:p-0 print:mb-2">
-                    <div className="flex flex-col md:flex-row justify-between gap-4">
+                <div className="mb-4 bg-white p-3 rounded-lg border border-blue-100 shadow-sm print:shadow-none print:border-none print:p-0 print:mb-2">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
 
                         {/* LEFT: Deliver / Receive Info */}
                         <div className="flex flex-col gap-4 flex-1">
                             {/* Title already shown in main print header, no duplicate needed */}
 
-                            <div className="flex flex-col sm:flex-row gap-6 print:gap-8">
+                            <div className="flex flex-col sm:flex-row gap-4 print:gap-6">
                                 {/* Delivers */}
                                 <div className="flex-1 min-w-[200px] max-w-xs">
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1 print:text-black">Entregado por (Dr.):</label>
@@ -394,7 +394,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
                         </div>
 
                         {/* RIGHT: Bed Stats (Compact) */}
-                        <div className="flex flex-col gap-0.5 p-2 bg-slate-50 rounded-lg border border-slate-200 min-w-[160px] print:border text-xs">
+                        <div className="flex flex-col gap-0.5 p-2 bg-slate-50 rounded-lg border border-slate-200 min-w-[150px] print:border text-[11px] self-start">
                             <h3 className="font-bold text-slate-700 uppercase border-b border-slate-200 pb-0.5 mb-1">Resumen Camas</h3>
                             <div className="flex justify-between items-center py-0.5">
                                 <span className="text-slate-600">Totales:</span>
@@ -473,13 +473,13 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className={tableHeaderClass}>
-                                <th className="p-2 border-r border-slate-700 text-center w-20 print:w-[40px] print:text-[10px] print:p-1">Cama</th>
-                                <th className="p-2 border-r border-slate-700 min-w-[150px] print:w-[15%] print:text-[10px] print:p-1">Nombre Paciente</th>
-                                <th className="p-2 border-r border-slate-700 w-36 print:hidden">RUT</th>
-                                <th className="p-2 border-r border-slate-700 w-64 print:w-[12%] print:text-[10px] print:p-1">Diagnóstico</th>
-                                <th className="p-2 border-r border-slate-700 w-20 print:w-[50px] print:text-[10px] print:p-1">Estado</th>
-                                <th className="p-2 border-r border-slate-700 w-28 text-center print:hidden">F. Ingreso</th>
-                                <th className="p-2 border-r border-slate-700 w-20 print:w-[55px] print:text-[10px] print:p-1" title="Dispositivos médicos invasivos">DMI</th>
+                                <th className="p-2 border-r border-slate-200 text-center w-20 print:w-[40px] print:text-[10px] print:p-1">Cama</th>
+                                <th className="p-2 border-r border-slate-200 min-w-[150px] print:w-[15%] print:text-[10px] print:p-1">Nombre Paciente</th>
+                                <th className="p-2 border-r border-slate-200 w-36 print:hidden">RUT</th>
+                                <th className="p-2 border-r border-slate-200 w-64 print:w-[12%] print:text-[10px] print:p-1">Diagnóstico</th>
+                                <th className="p-2 border-r border-slate-200 w-20 print:w-[50px] print:text-[10px] print:p-1">Estado</th>
+                                <th className="p-2 border-r border-slate-200 w-28 text-center print:hidden">F. Ingreso</th>
+                                <th className="p-2 border-r border-slate-200 w-20 print:w-[55px] print:text-[10px] print:p-1" title="Dispositivos médicos invasivos">DMI</th>
                                 <th className="p-2 min-w-[300px] print:w-auto print:text-[10px] print:p-1">Observaciones</th>
                             </tr>
                         </thead>

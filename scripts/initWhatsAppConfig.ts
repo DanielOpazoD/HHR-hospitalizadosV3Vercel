@@ -6,8 +6,19 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 
+const decodeBase64 = (value: string | undefined) => {
+    if (!value) return '';
+
+    try {
+        return Buffer.from(value, 'base64').toString('utf-8');
+    } catch (error) {
+        console.warn('Firebase API key (base64) could not be decoded:', error);
+        return '';
+    }
+};
+
 const firebaseConfig = {
-    apiKey: process.env.VITE_FIREBASE_API_KEY,
+    apiKey: decodeBase64(process.env.VITE_FIREBASE_API_KEY_B64),
     authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: process.env.VITE_FIREBASE_PROJECT_ID,
     storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,

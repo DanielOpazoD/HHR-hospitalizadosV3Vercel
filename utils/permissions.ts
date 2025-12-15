@@ -139,3 +139,21 @@ export function isAdmin(role: UserRole | undefined): boolean {
 export function canViewModule(role: UserRole | undefined, module: ModuleType): boolean {
     return getVisibleModules(role).includes(module);
 };
+
+/**
+ * Human-friendly display name for a given role.
+ */
+export function getRoleDisplayName(role?: UserRole): string {
+    switch (role) {
+        case ROLES.ADMIN:
+            return 'Administrador';
+        case ROLES.NURSE_HOSPITAL:
+            return 'Enfermería Hospitalizados';
+        case ROLES.DOCTOR_URGENCY:
+            return 'Médico de Urgencia';
+        case ROLES.VIEWER_CENSUS:
+            return 'Visualizador de Censo';
+        default:
+            return 'Invitado';
+    }
+}

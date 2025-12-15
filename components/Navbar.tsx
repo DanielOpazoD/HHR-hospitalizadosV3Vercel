@@ -1,10 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { LayoutList, BarChart2, FileJson, Upload, Settings, ClipboardList, MessageSquare, LogOut, FileSpreadsheet, ChevronDown, ShieldCheck, WifiOff, RefreshCw, Stethoscope } from 'lucide-react';
 import clsx from 'clsx';
 import { useDailyRecordContext } from '../context/DailyRecordContext';
 import { useDemoMode } from '../context/DemoModeContext';
 import { useRole } from '../context/RoleContext';
-import { getVisibleModules, isAdmin } from '../utils/permissions';
+import { getRoleDisplayName, getVisibleModules, isAdmin } from '../utils/permissions';
 
 export type ModuleType = 'CENSUS' | 'CUDYR' | 'NURSING_HANDOFF' | 'MEDICAL_HANDOFF' | 'REPORTS' | 'AUDIT' | 'WHATSAPP';
 type ViewMode = 'REGISTER' | 'ANALYTICS';
@@ -50,6 +50,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -236,21 +249,38 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {userEmail && onLogout && (
-            <div className="flex items-center gap-2">
-              {/* Google-style Avatar */}
-              <div
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm uppercase shadow-md"
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-xs uppercase shadow-md focus:outline-none focus:ring-2 focus:ring-white/70"
                 title={userEmail}
               >
                 {userEmail.charAt(0)}
-              </div>
-              <button
-                onClick={onLogout}
-                className="p-2 text-red-300 hover:text-red-100 hover:bg-red-500/20 rounded transition-colors"
-                title="Cerrar Sesión"
-              >
-                <LogOut size={16} />
               </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-white text-slate-800 rounded-lg shadow-lg border border-slate-200 z-50 overflow-hidden text-sm">
+                  <div className="p-3 border-b border-slate-200">
+                    <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Usuario</p>
+                    <p className="mt-1 font-semibold break-words text-slate-800 text-sm leading-snug">{userEmail}</p>
+                    <p className="mt-1.5 text-xs text-slate-600">
+                      Rol: <span className="font-semibold text-slate-800">{getRoleDisplayName(role)}</span>
+                    </p>
+                  </div>
+                  <div className="p-2">
+                    <button
+                      onClick={() => {
+                        onLogout();
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    >
+                      <LogOut size={16} />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

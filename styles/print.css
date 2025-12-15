@@ -4,6 +4,13 @@
   }
 
   /* Reduce spacing and optimize for print */
+  html,
+  body,
+  #root,
+  main {
+    background: white !important;
+  }
+
   body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
