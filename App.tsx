@@ -6,6 +6,7 @@ import { Navbar, DateStrip, SettingsModal, TestAgent, SyncWatcher, DemoModePanel
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ModuleType } from './components';
 import { canEditModule } from './utils/permissions';
+import { firebaseInitError } from './firebaseConfig';
 
 // ========== LAZY LOADED VIEWS ==========
 // These views are loaded on-demand when the user navigates to them
@@ -34,6 +35,25 @@ const ViewLoader = () => (
 );
 
 function App() {
+  if (firebaseInitError) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center px-6">
+        <div className="max-w-xl bg-white shadow-md rounded-xl p-6 border border-slate-200 space-y-3 text-center">
+          <h1 className="text-xl font-semibold text-slate-900">No se pudo cargar la aplicación</h1>
+          <p className="text-slate-600 text-sm leading-relaxed">
+            Falta la configuración de Firebase necesaria para conectar con la base de datos. Agrega las variables
+            <code className="bg-slate-100 px-1 mx-1 rounded">VITE_FIREBASE_* </code>
+            en los ajustes de entorno de Netlify (o en un archivo <code className="bg-slate-100 px-1 mx-1 rounded">.env.local</code>)
+            y vuelve a desplegar.
+          </p>
+          <p className="text-sm text-slate-500 break-words">
+            Detalle técnico: {firebaseInitError.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // ========== STORAGE MIGRATION (runs once on startup) ==========
   useStorageMigration();
 
