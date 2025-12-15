@@ -156,12 +156,19 @@ export const signInWithGoogle = async (): Promise<AuthUser> => {
             throw error;
         }
 
+        console.error('Google sign-in failed', error);
+
         const errorMessages: Record<string, string> = {
             'auth/popup-closed-by-user': 'Inicio de sesión cancelado',
             'auth/popup-blocked': 'El navegador bloqueó la ventana emergente. Permita pop-ups para este sitio.',
             'auth/cancelled-popup-request': 'Operación cancelada',
-            'auth/network-request-failed': 'Error de conexión. Verifique su internet.'
+            'auth/network-request-failed': 'Error de conexión. Verifique su internet.',
+            'auth/unauthorized-domain':
+                'Dominio no autorizado en Firebase Auth. Agrega el dominio actual en Firebase > Authentication > Settings > Authorized domains.',
+            'auth/invalid-api-key':
+                'Clave de API inválida. Revisa las variables de entorno de Firebase configuradas en Netlify.'
         };
+
         throw new Error(errorMessages[error.code] || 'Error al iniciar sesión con Google');
     }
 };

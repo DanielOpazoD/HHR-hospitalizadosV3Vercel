@@ -142,6 +142,9 @@ GEMINI_API_KEY=tu_gemini_api_key_opcional
 > Si prefieres evitar copiarla en texto plano en `.env`, codifícala en base64 y usa `VITE_FIREBASE_API_KEY_B64`:
 > `echo -n "AIza..." | base64`
 
+> ✅ Para evitar errores al iniciar sesión con Google, agrega los dominios de previsualización y producción de Netlify en
+> **Firebase Console → Authentication → Settings → Authorized domains**.
+
 ### Desarrollo
 
 ```bash
