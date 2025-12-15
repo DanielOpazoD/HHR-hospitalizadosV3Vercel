@@ -208,6 +208,18 @@ export const signOut = async (): Promise<void> => {
 export const onAuthChange = (callback: (user: AuthUser | null) => void): (() => void) => {
     return onAuthStateChanged(auth, async (firebaseUser: User | null) => {
         if (firebaseUser) {
+            // Anonymous users are allowed without whitelist checks (used for signature mode)
+            if (firebaseUser.isAnonymous) {
+                callback({
+                    uid: firebaseUser.uid,
+                    email: null,
+                    displayName: 'Usuario anónimo',
+                    photoURL: firebaseUser.photoURL,
+                    role: 'viewer'
+                });
+                return;
+            }
+
             // Check if still allowed (in case user was removed from whitelist)
             const { allowed, role } = await checkEmailInFirestore(firebaseUser.email || '');
             if (!allowed) {
