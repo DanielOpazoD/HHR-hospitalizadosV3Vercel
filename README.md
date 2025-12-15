@@ -136,7 +136,7 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abc123
 GEMINI_API_KEY=tu_gemini_api_key_opcional
 ```
 
-> 💡 Codifica tu API key en base64 para asignarla a `VITE_FIREBASE_API_KEY_B64`, por ejemplo:
+> 💡 Codifica tu API key en base64 para asignarla a `VITE_FIREBASE_API_KEY_B64` (sin espacios ni saltos de línea), por ejemplo:
 > `echo -n "AIza..." | base64`
 
 ### Desarrollo
