@@ -126,10 +126,10 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     const Icon = isMedical ? Stethoscope : MessageSquare;
     const headerColor = isMedical ? 'text-purple-600' : 'text-medical-600';
     const tableHeaderClass = isMedical
-        ? "bg-purple-800 text-white text-xs uppercase tracking-wider font-bold"
+        ? "bg-purple-100 text-purple-900 text-xs uppercase tracking-wider font-semibold border-b border-purple-200"
         : selectedShift === 'day'
-            ? "bg-indigo-700 text-white text-xs uppercase tracking-wider font-bold"
-            : "bg-slate-800 text-white text-xs uppercase tracking-wider font-bold";
+            ? "bg-medical-50 text-medical-900 text-xs uppercase tracking-wider font-semibold border-b border-medical-200"
+            : "bg-slate-100 text-slate-800 text-xs uppercase tracking-wider font-semibold border-b border-slate-200";
 
     // Staff lists
     const deliversList = record
