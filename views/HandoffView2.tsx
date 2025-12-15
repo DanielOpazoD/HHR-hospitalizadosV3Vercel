@@ -126,9 +126,9 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     const Icon = isMedical ? Stethoscope : MessageSquare;
     const headerColor = isMedical ? 'text-purple-600' : 'text-medical-600';
     const tableHeaderClass = isMedical
-        ? "bg-purple-100 text-purple-900 text-xs uppercase tracking-wider font-semibold border-b border-purple-200"
+        ? "bg-purple-100 text-purple-900 text-xs uppercase tracking-wider font-semibold border-b border-purple-100"
         : selectedShift === 'day'
-            ? "bg-medical-50 text-medical-900 text-xs uppercase tracking-wider font-semibold border-b border-medical-200"
+            ? "bg-medical-50 text-medical-900 text-xs uppercase tracking-wider font-semibold border-b border-medical-100"
             : "bg-slate-100 text-slate-800 text-xs uppercase tracking-wider font-semibold border-b border-slate-200";
 
     // Staff lists
@@ -149,7 +149,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     }
 
     return (
-        <div className="space-y-6 animate-fade-in pb-20 font-sans">
+        <div className="space-y-4 animate-fade-in pb-20 font-sans">
             {/* Print-only Header */}
             <div className="hidden print:block mb-4 pb-4 border-b-2 border-slate-800">
                 <div className="flex justify-between items-start mb-4">
@@ -398,13 +398,13 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className={tableHeaderClass}>
-                                <th className="p-2 border-r border-slate-700 text-center w-20">Cama</th>
-                                <th className="p-2 border-r border-slate-700 min-w-[150px]">Nombre Paciente</th>
-                                <th className="p-2 border-r border-slate-700 w-36">RUT</th>
-                                <th className="p-2 border-r border-slate-700 w-64">Diagnóstico</th>
-                                <th className="p-2 border-r border-slate-700 w-20">Estado</th>
-                                <th className="p-2 border-r border-slate-700 w-28 text-center">F. Ingreso</th>
-                                <th className="p-2 border-r border-slate-700 w-20">Dispositivos</th>
+                                <th className="p-2 border-r border-slate-200 text-center w-20">Cama</th>
+                                <th className="p-2 border-r border-slate-200 min-w-[150px]">Nombre Paciente</th>
+                                <th className="p-2 border-r border-slate-200 w-36">RUT</th>
+                                <th className="p-2 border-r border-slate-200 w-64">Diagnóstico</th>
+                                <th className="p-2 border-r border-slate-200 w-20">Estado</th>
+                                <th className="p-2 border-r border-slate-200 w-28 text-center">F. Ingreso</th>
+                                <th className="p-2 border-r border-slate-200 w-20">Dispositivos</th>
                                 <th className="p-2 min-w-[300px]">Observaciones</th>
                             </tr>
                         </thead>

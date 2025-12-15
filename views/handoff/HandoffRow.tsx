@@ -90,10 +90,10 @@ export const HandoffRow: React.FC<HandoffRowProps> = ({
     // If bed is blocked (and not a sub-row), show blocked status
     if (!isSubRow && patient.isBlocked) {
         return (
-            <tr className="bg-red-50 border-b border-red-200 text-sm">
-                <td className="p-3 font-bold text-red-700 text-center align-middle">{bedName}</td>
-                <td colSpan={9} className="p-3 text-red-600 flex items-center gap-2 align-middle">
-                    <AlertCircle size={16} /> BLOQUEADA: {patient.blockedReason}
+            <tr className="bg-slate-50 border-b border-slate-200 text-sm">
+                <td className="p-3 font-semibold text-slate-700 text-center align-middle">{bedName}</td>
+                <td colSpan={9} className="p-3 text-slate-700 flex items-center gap-2 align-middle">
+                    <AlertCircle size={16} className="text-slate-500" /> BLOQUEADA: {patient.blockedReason}
                 </td>
             </tr>
         );
