@@ -127,7 +127,8 @@ cp .env.example .env
 Crea un archivo `.env` con:
 
 ```env
-VITE_FIREBASE_API_KEY=tu_api_key
+VITE_FIREBASE_API_KEY_PART1=primer_fragmento_de_tu_api_key
+VITE_FIREBASE_API_KEY_PART2=segundo_fragmento_de_tu_api_key
 VITE_FIREBASE_AUTH_DOMAIN=tu-proyecto.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=tu-proyecto
 VITE_FIREBASE_STORAGE_BUCKET=tu-proyecto.appspot.com

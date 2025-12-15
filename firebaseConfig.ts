@@ -2,8 +2,17 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { initializeFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from 'firebase/firestore';
 
+const firebaseApiKeyPart1 = import.meta.env.VITE_FIREBASE_API_KEY_PART1 || '';
+const firebaseApiKeyPart2 = import.meta.env.VITE_FIREBASE_API_KEY_PART2 || '';
+
+if (!firebaseApiKeyPart1 || !firebaseApiKeyPart2) {
+    console.warn(
+        'Firebase API key parts are missing. Please set VITE_FIREBASE_API_KEY_PART1 and VITE_FIREBASE_API_KEY_PART2 in Netlify.'
+    );
+}
+
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    apiKey: `${firebaseApiKeyPart1}${firebaseApiKeyPart2}`,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
