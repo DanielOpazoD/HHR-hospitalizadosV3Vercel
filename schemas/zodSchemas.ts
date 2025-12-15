@@ -1,0 +1,212 @@
+/**
+ * Zod Schemas for Data Validation
+ * 
+ * These schemas validate data coming from Firebase or localStorage
+ * to ensure type safety and catch corrupted/malformed data.
+ */
+
+import { z } from 'zod';
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+export const BedTypeSchema = z.enum(['UTI', 'MEDIA']);
+export const SpecialtySchema = z.enum([
+    'Medicina Interna', 'Cirugía', 'Traumatología', 'Ginecología',
+    'Psiquiatría', 'Pediatría', 'Obstetricia', 'Otro', ''
+]);
+export const PatientStatusSchema = z.enum(['Grave', 'De cuidado', 'Estable', '']);
+
+// ============================================================================
+// Sub-schemas
+// ============================================================================
+
+export const CudyrScoreSchema = z.object({
+    changeClothes: z.number().default(0),
+    mobilization: z.number().default(0),
+    feeding: z.number().default(0),
+    elimination: z.number().default(0),
+    psychosocial: z.number().default(0),
+    surveillance: z.number().default(0),
+    vitalSigns: z.number().default(0),
+    fluidBalance: z.number().default(0),
+    oxygenTherapy: z.number().default(0),
+    airway: z.number().default(0),
+    proInterventions: z.number().default(0),
+    skinCare: z.number().default(0),
+    pharmacology: z.number().default(0),
+    invasiveElements: z.number().default(0),
+}).partial();
+
+export const DeviceInfoSchema = z.object({
+    installationDate: z.string().optional(),
+    removalDate: z.string().optional(),
+});
+
+export const DeviceDetailsSchema = z.object({
+    CUP: DeviceInfoSchema.optional(),
+    CVC: DeviceInfoSchema.optional(),
+    VMI: DeviceInfoSchema.optional(),
+});
+
+// ============================================================================
+// PatientData Schema
+// ============================================================================
+
+// Forward declare for recursive type (clinicalCrib)
+export const PatientDataSchema: z.ZodType<unknown> = z.lazy(() =>
+    z.object({
+        bedId: z.string().default(''),
+        isBlocked: z.boolean().default(false),
+        blockedReason: z.string().optional(),
+        bedMode: z.enum(['Cama', 'Cuna']).default('Cama'),
+        hasCompanionCrib: z.boolean().default(false),
+        clinicalCrib: PatientDataSchema.optional(),
+        patientName: z.string().default(''),
+        rut: z.string().default(''),
+        documentType: z.enum(['RUT', 'Pasaporte']).optional(),
+        age: z.string().default(''),
+        birthDate: z.string().optional(),
+        biologicalSex: z.enum(['Masculino', 'Femenino', 'Indeterminado']).optional(),
+        insurance: z.enum(['Fonasa', 'Isapre', 'Particular']).optional(),
+        admissionOrigin: z.enum(['CAE', 'APS', 'Urgencias', 'Pabellón', 'Otro']).optional(),
+        admissionOriginDetails: z.string().optional(),
+        origin: z.enum(['Residente', 'Turista Nacional', 'Turista Extranjero']).optional(),
+        isRapanui: z.boolean().optional(),
+        pathology: z.string().default(''),
+        diagnosisComments: z.string().optional(),
+        specialty: SpecialtySchema.default(''),
+        status: PatientStatusSchema.default(''),
+        admissionDate: z.string().default(''),
+        hasWristband: z.boolean().default(false),
+        isBedridden: z.boolean().default(false),
+        devices: z.array(z.string()).default([]),
+        deviceDetails: DeviceDetailsSchema.optional(),
+        surgicalComplication: z.boolean().default(false),
+        isUPC: z.boolean().default(false),
+        location: z.string().optional(),
+        cudyr: CudyrScoreSchema.optional(),
+        handoffNote: z.string().optional(),
+        handoffNoteDayShift: z.string().optional(),
+        handoffNoteNightShift: z.string().optional(),
+        medicalHandoffNote: z.string().optional(),
+    }).passthrough() // Allow additional fields
+);
+
+// ============================================================================
+// Discharge & Transfer Schemas
+// ============================================================================
+
+export const DischargeDataSchema = z.object({
+    id: z.string(),
+    bedName: z.string().default(''),
+    bedId: z.string().default(''),
+    bedType: z.string().default(''),
+    patientName: z.string().default(''),
+    rut: z.string().default(''),
+    diagnosis: z.string().default(''),
+    status: z.enum(['Vivo', 'Fallecido']).default('Vivo'),
+    dischargeType: z.enum(['Domicilio (Habitual)', 'Voluntaria', 'Fuga', 'Otra']).optional(),
+    dischargeTypeOther: z.string().optional(),
+    age: z.string().optional(),
+    insurance: z.string().optional(),
+    origin: z.string().optional(),
+    isRapanui: z.boolean().optional(),
+    originalData: z.unknown().optional(),
+    isNested: z.boolean().optional(),
+}).passthrough();
+
+export const TransferDataSchema = z.object({
+    id: z.string(),
+    bedName: z.string().default(''),
+    bedId: z.string().default(''),
+    bedType: z.string().default(''),
+    patientName: z.string().default(''),
+    rut: z.string().default(''),
+    diagnosis: z.string().default(''),
+    evacuationMethod: z.string().default(''),
+    receivingCenter: z.string().default(''),
+    receivingCenterOther: z.string().optional(),
+    transferEscort: z.string().optional(),
+    age: z.string().optional(),
+    insurance: z.string().optional(),
+    origin: z.string().optional(),
+    isRapanui: z.boolean().optional(),
+    originalData: z.unknown().optional(),
+    isNested: z.boolean().optional(),
+}).passthrough();
+
+export const CMADataSchema = z.object({
+    id: z.string(),
+    bedName: z.string().default(''),
+    patientName: z.string().default(''),
+    rut: z.string().default(''),
+    age: z.string().default(''),
+    diagnosis: z.string().default(''),
+    specialty: z.string().default(''),
+    interventionType: z.enum(['Cirugía Mayor Ambulatoria', 'Procedimiento Médico Ambulatorio']).optional(),
+    enteredBy: z.string().optional(),
+    timestamp: z.string().optional(),
+}).passthrough();
+
+// ============================================================================
+// DailyRecord Schema
+// ============================================================================
+
+export const DailyRecordSchema = z.object({
+    date: z.string(),
+    beds: z.record(z.string(), PatientDataSchema).default({}),
+    discharges: z.array(DischargeDataSchema).default([]),
+    transfers: z.array(TransferDataSchema).default([]),
+    cma: z.array(CMADataSchema).default([]),
+    lastUpdated: z.string().default(() => new Date().toISOString()),
+    nurses: z.array(z.string()).default(['', '']),
+    nurseName: z.string().optional(),
+    nursesDayShift: z.array(z.string()).optional(),
+    nursesNightShift: z.array(z.string()).optional(),
+    tensDayShift: z.array(z.string()).optional(),
+    tensNightShift: z.array(z.string()).optional(),
+    activeExtraBeds: z.array(z.string()).default([]),
+}).passthrough(); // Allow additional fields not defined here
+
+// ============================================================================
+// Safe Parsing Utilities
+// ============================================================================
+
+/**
+ * Safely parse DailyRecord with fallbacks for invalid data
+ */
+export const safeParseDailyRecord = (data: unknown): z.infer<typeof DailyRecordSchema> | null => {
+    const result = DailyRecordSchema.safeParse(data);
+    if (result.success) {
+        return result.data;
+    }
+    console.warn('⚠️ DailyRecord validation failed:', result.error.issues);
+    return null;
+};
+
+/**
+ * Parse DailyRecord with partial recovery
+ * Returns the data with defaults applied where validation fails
+ */
+export const parseDailyRecordWithDefaults = (data: unknown, docId: string): z.infer<typeof DailyRecordSchema> => {
+    try {
+        // First try strict parsing
+        return DailyRecordSchema.parse(data);
+    } catch {
+        // If strict fails, apply defaults and try again
+        console.warn('⚠️ Applying defaults to DailyRecord for date:', docId);
+        return {
+            date: docId,
+            beds: {},
+            discharges: [],
+            transfers: [],
+            cma: [],
+            lastUpdated: new Date().toISOString(),
+            nurses: ['', ''],
+            activeExtraBeds: [],
+            ...(typeof data === 'object' && data !== null ? data : {}),
+        };
+    }
+};

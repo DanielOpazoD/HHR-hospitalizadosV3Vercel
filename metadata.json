@@ -1,0 +1,5 @@
+{
+  "name": "Hanga Roa Hospital Tracker",
+  "description": "Digital patient census and statistics tracker for Hospital Hanga Roa. Features daily logging, automatic carry-over, and AI-powered analytics.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,109 @@
+import React from 'react';
+import { useCensusActions } from './CensusActionsContext';
+import { useStaffContext } from '../../context/StaffContext';
+import { NurseManagerModal } from '../../components/modals/NurseManagerModal';
+import { TensManagerModal } from '../../components/modals/TensManagerModal';
+import { BedManagerModal } from '../../components/modals/BedManagerModal';
+import { MoveCopyModal, DischargeModal, TransferModal } from '../../components/modals/ActionModals';
+
+interface CensusModalsProps {
+    // Bed Manager props
+    showBedManagerModal: boolean;
+    onCloseBedManagerModal: () => void;
+}
+
+export const CensusModals: React.FC<CensusModalsProps> = ({
+    showBedManagerModal,
+    onCloseBedManagerModal
+}) => {
+    // Staff management from StaffContext
+    const {
+        nursesList,
+        setNursesList,
+        tensList,
+        setTensList,
+        showNurseManager,
+        setShowNurseManager,
+        showTensManager,
+        setShowTensManager
+    } = useStaffContext();
+
+    const {
+        // Move/Copy
+        actionState,
+        setActionState,
+        executeMoveOrCopy,
+
+        // Discharge
+        dischargeState,
+        setDischargeState,
+        executeDischarge,
+
+        // Transfer
+        transferState,
+        setTransferState,
+        executeTransfer
+    } = useCensusActions();
+
+    return (
+        <>
+            <NurseManagerModal
+                isOpen={showNurseManager}
+                onClose={() => setShowNurseManager(false)}
+                nursesList={nursesList}
+                setNursesList={setNursesList}
+            />
+
+            <TensManagerModal
+                isOpen={showTensManager}
+                onClose={() => setShowTensManager(false)}
+                tensList={tensList}
+                setTensList={setTensList}
+            />
+
+            <BedManagerModal
+                isOpen={showBedManagerModal}
+                onClose={onCloseBedManagerModal}
+            />
+
+            <MoveCopyModal
+                isOpen={!!actionState.type}
+                type={actionState.type}
+                sourceBedId={actionState.sourceBedId}
+                targetBedId={actionState.targetBedId}
+                onClose={() => setActionState({ type: null, sourceBedId: null, targetBedId: null })}
+                onSetTarget={(id) => setActionState({ ...actionState, targetBedId: id })}
+                onConfirm={executeMoveOrCopy}
+            />
+
+            <DischargeModal
+                isOpen={dischargeState.isOpen}
+                isEditing={!!dischargeState.recordId}
+                status={dischargeState.status}
+                hasClinicalCrib={dischargeState.hasClinicalCrib}
+                clinicalCribName={dischargeState.clinicalCribName}
+                clinicalCribStatus={dischargeState.clinicalCribStatus}
+                onClinicalCribStatusChange={(s) => setDischargeState({ ...dischargeState, clinicalCribStatus: s })}
+                onStatusChange={(s) => setDischargeState({ ...dischargeState, status: s })}
+                initialType={dischargeState.type}
+                initialOtherDetails={dischargeState.typeOther}
+                onClose={() => setDischargeState({ ...dischargeState, isOpen: false })}
+                onConfirm={executeDischarge}
+            />
+
+            <TransferModal
+                isOpen={transferState.isOpen}
+                isEditing={!!transferState.recordId}
+                evacuationMethod={transferState.evacuationMethod}
+                receivingCenter={transferState.receivingCenter}
+                receivingCenterOther={transferState.receivingCenterOther}
+                transferEscort={transferState.transferEscort}
+                hasClinicalCrib={transferState.hasClinicalCrib}
+                clinicalCribName={transferState.clinicalCribName}
+                onUpdate={(field, val) => setTransferState({ ...transferState, [field]: val })}
+                onClose={() => setTransferState({ ...transferState, isOpen: false })}
+                onConfirm={executeTransfer}
+            />
+        </>
+    );
+};

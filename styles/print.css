@@ -1,0 +1,11 @@
+@media print {
+  @page {
+    margin: 10mm 10mm 10mm 10mm;
+  }
+
+  /* Reduce spacing and optimize for print */
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

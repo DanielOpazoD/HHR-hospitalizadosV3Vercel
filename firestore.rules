@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Get user email
+    function getUserEmail() {
+      return request.auth.token.email;
+    }
+    
+    // Check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        getUserEmail() in [
+          'daniel.opazo@hospitalhangaroa.cl',
+          'd.opazo.damiani@gmail.com'
+        ];
+    }
+    
+    // Check if user is nurse
+    function isNurse() {
+      return isAuthenticated() && 
+        getUserEmail() == 'hospitalizados@hospitalhangaroa.cl';
+    }
+    
+    // Check if user can edit (admin or nurse)
+    function canEdit() {
+      return isAdmin() || isNurse();
+    }
+    
+    // ============================================
+    // DAILY RECORDS (Main Census Data)
+    // ============================================
+    match /dailyRecords/{date} {
+      // All authenticated users can read
+      allow read: if isAuthenticated();
+      
+      // Only admins and nurses can create/update/delete
+      allow create, update: if canEdit();
+      allow delete: if isAdmin(); // Only admin can delete entire days
+    }
+    
+    // ============================================
+    // AUDIT LOGS (Critical - Read-only for non-admins)
+    // ============================================
+    match /auditLogs/{logId} {
+      // Only admins can read audit logs
+      allow read: if isAdmin();
+      
+      // Only the system can write (server-side or admin)
+      allow create: if isAdmin();
+      
+      // No updates or deletes allowed (immutable logs)
+      allow update, delete: if false;
+    }
+    
+    // ============================================
+    // ALLOWED USERS (Admin management)
+    // ============================================
+    match /allowedUsers/{userId} {
+      // Only admins can manage allowed users
+      allow read, write: if isAdmin();
+    }
+    
+    // ============================================
+    // STAFF CATALOGS (Nurses, TENS lists)
+    // ============================================
+    match /staffCatalogs/{catalogType} {
+      // All authenticated users can read staff lists
+      allow read: if isAuthenticated();
+      
+      // Only admins can update staff catalogs
+      allow write: if isAdmin();
+    }
+    
+    // ============================================
+    // USER SETTINGS (Future: per-user preferences)
+    // ============================================
+    match /userSettings/{userId} {
+      // Users can read their own settings, admins can read all
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == userId || isAdmin());
+      
+      // Users can write their own settings, admins can write all
+      allow write: if isAuthenticated() && 
+        (request.auth.uid == userId || isAdmin());
+    }
+    
+    // ============================================
+    // WHATSAPP INTEGRATION
+    // ============================================
+    
+    // WhatsApp configuration
+    match /whatsapp/config {
+      // All authenticated users can read config
+      allow read: if isAuthenticated();
+      
+      // Only admins can update configuration
+      allow write: if isAdmin();
+    }
+    
+    // Weekly shifts from WhatsApp
+    match /shifts/weekly/{date} {
+      // All authenticated users can read shifts
+      allow read: if isAuthenticated();
+      
+      // Only system (Cloud Functions) or admins can write
+      allow write: if isAdmin();
+    }
+    
+    // WhatsApp operation logs
+    match /whatsappLogs/{logId} {
+      // Only admins can read logs
+      allow read: if isAdmin();
+      
+      // System can create (never update/delete)
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // WhatsApp messages (temporary storage for parsing)
+    match /whatsappMessages/{messageId} {
+      // Only system can write
+      allow read, write: if isAdmin();
+    }
+    
+    // ============================================
+    // DENY ALL OTHER COLLECTIONS BY DEFAULT
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
