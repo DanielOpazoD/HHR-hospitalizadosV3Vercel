@@ -20,8 +20,8 @@ export const HandoffPatientTable: React.FC<HandoffPatientTableProps> = ({
     readOnly
 }) => {
     return (
-        <div className="overflow-x-auto shadow-lg rounded-xl border border-slate-200 bg-white print:shadow-none print:border print:border-slate-400">
-            <table className="w-full border-collapse table-fixed min-w-[900px] print:min-w-0">
+        <div className="overflow-x-auto shadow-lg rounded-xl border border-slate-200 bg-white print:shadow-none print:border print:border-slate-400 font-sans">
+            <table className="w-full border-collapse table-fixed min-w-[900px] print:min-w-0 font-sans">
                 <thead>
                     <tr className={tableHeaderClass}>
                         <th className="p-3 text-left w-24 print:p-2 print:w-20 print:text-xs">Cama</th>
