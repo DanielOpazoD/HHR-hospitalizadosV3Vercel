@@ -10,6 +10,15 @@ const INTERVENTION_TYPES = [
     'Procedimiento Médico Ambulatorio'
 ] as const;
 
+// Camas disponibles para hospitalización diurna
+const CMA_BEDS = [
+    'R1', 'R2', 'R3', 'R4',
+    'NEO 1', 'NEO 2',
+    'H1C1', 'H1C2', 'H2C1', 'H2C2',
+    'H3C1', 'H3C2', 'H4C1', 'H4C2',
+    'H5C1', 'H5C2', 'H6C1', 'H6C2'
+] as const;
+
 export const CMASection: React.FC = () => {
     const { record, addCMA, deleteCMA, updateCMA } = useDailyRecordContext();
     const [isAdding, setIsAdding] = useState(false);
@@ -90,7 +99,7 @@ export const CMASection: React.FC = () => {
                     <table className="w-full text-sm text-left">
                         <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase text-xs">
                             <tr>
-                                <th className="p-3 w-20">Ubicación</th>
+                                <th className="p-3 w-20">Cama</th>
                                 <th className="p-3 w-40">Tipo</th>
                                 <th className="p-3 w-48">Paciente</th>
                                 <th className="p-3 w-32">RUT / ID</th>
@@ -105,13 +114,16 @@ export const CMASection: React.FC = () => {
                             {cmaList.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50 group">
                                     <td className="p-2">
-                                        <DebouncedInput
-                                            type="text"
-                                            className="w-full p-1 border border-transparent hover:border-slate-300 rounded focus:border-orange-400 focus:ring-1 focus:ring-orange-400 text-xs transition-colors"
+                                        <select
+                                            className="w-full p-1 border border-transparent hover:border-slate-300 rounded focus:border-orange-400 focus:ring-1 focus:ring-orange-400 text-xs bg-transparent transition-colors"
                                             value={item.bedName}
-                                            placeholder='-'
-                                            onChange={(val) => handleUpdate(item.id, 'bedName', val)}
-                                        />
+                                            onChange={(e) => handleUpdate(item.id, 'bedName', e.target.value)}
+                                        >
+                                            <option value="">-- Sel --</option>
+                                            {CMA_BEDS.map(bed => (
+                                                <option key={bed} value={bed}>{bed}</option>
+                                            ))}
+                                        </select>
                                     </td>
                                     <td className="p-2">
                                         <select
@@ -185,14 +197,17 @@ export const CMASection: React.FC = () => {
                             {isAdding && (
                                 <tr className="bg-orange-50/50 animate-fade-in">
                                     <td className="p-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Ubicación"
+                                        <select
                                             className="w-full p-1.5 border border-orange-200 rounded text-xs focus:outline-none focus:border-orange-400"
                                             value={newEntry.bedName || ''}
                                             onChange={(e) => setNewEntry({ ...newEntry, bedName: e.target.value })}
                                             autoFocus
-                                        />
+                                        >
+                                            <option value="">-- Sel --</option>
+                                            {CMA_BEDS.map(bed => (
+                                                <option key={bed} value={bed}>{bed}</option>
+                                            ))}
+                                        </select>
                                     </td>
                                     <td className="p-2">
                                         <select

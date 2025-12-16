@@ -95,6 +95,7 @@ export {
     importDataJSON,
     importDataCSV
 } from './exportService';
+export { generateCensusMasterExcel } from './censusMasterExport';
 
 // ============================================================
 // REPORTS
