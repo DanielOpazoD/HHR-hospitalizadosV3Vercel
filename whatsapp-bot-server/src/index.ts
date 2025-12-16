@@ -6,23 +6,31 @@
  * 2. Listens to configured groups
  * 3. Saves messages to Firebase for parsing
  * 4. Provides API for sending messages from main app
+ * 
+ * Uses RemoteAuth with Firestore to persist session across deploys
  */
 
-import { Client, LocalAuth } from 'whatsapp-web.js';
+import { Client, RemoteAuth } from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
 import express from 'express';
 import { initializeFirebase, saveMessage, getConfig, saveWeeklyShift } from './firebase';
 import { parseShiftMessage } from './parsers/shiftParser';
 import { sendHandoffNotification } from './services/messageSender';
+import { FirestoreStore } from './stores/FirestoreStore';
 
 
-// Initialize Firebase
+// Initialize Firebase FIRST (before creating store)
 initializeFirebase();
 
-// Create WhatsApp client
+// Create Firestore store for session persistence
+const store = new FirestoreStore('whatsapp-sessions');
+
+// Create WhatsApp client with RemoteAuth
 const client = new Client({
-    authStrategy: new LocalAuth({
-        clientId: 'hospital-bot'
+    authStrategy: new RemoteAuth({
+        clientId: 'hospital-bot',
+        store: store,
+        backupSyncIntervalMs: 60000 // Backup session every minute
     }),
     puppeteer: {
         headless: true,
