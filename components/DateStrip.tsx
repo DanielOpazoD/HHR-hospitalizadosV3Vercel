@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Printer, Database } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Printer, Database, FileSpreadsheet } from 'lucide-react';
 import clsx from 'clsx';
 import { MONTH_NAMES } from '../constants';
 import { useDemoMode } from '../context/DemoModeContext';
@@ -16,6 +16,7 @@ interface DateStripProps {
     existingDaysInMonth: number[];
     onOpenBedManager?: () => void;
     onPrint?: () => void;
+    onExportExcel?: () => void;
     syncStatus?: 'idle' | 'saving' | 'saved' | 'error';
     lastSyncTime?: Date | null;
 }
@@ -29,6 +30,7 @@ export const DateStrip: React.FC<DateStripProps> = ({
     existingDaysInMonth,
     onOpenBedManager,
     onPrint,
+    onExportExcel,
     syncStatus,
     lastSyncTime
 }) => {
@@ -77,6 +79,18 @@ export const DateStrip: React.FC<DateStripProps> = ({
                         >
                             <Printer size={14} />
                             PDF
+                        </button>
+                    )}
+
+                    {/* Excel Export Button */}
+                    {onExportExcel && (
+                        <button
+                            onClick={onExportExcel}
+                            className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 transition-colors shadow-sm"
+                            title="Descargar Excel Maestro del Mes"
+                        >
+                            <FileSpreadsheet size={14} />
+                            EXCEL
                         </button>
                     )}
 
