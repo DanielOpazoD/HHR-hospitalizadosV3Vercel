@@ -13,6 +13,7 @@ export const handler = async (event: any) => {
     }
 
     const requesterRole = (event.headers['x-user-role'] || event.headers['X-User-Role']) as string | undefined;
+    const requesterEmail = (event.headers['x-user-email'] || event.headers['X-User-Email']) as string | undefined;
     if (!requesterRole || !ALLOWED_ROLES.includes(requesterRole)) {
         return {
             statusCode: 403,
@@ -50,7 +51,8 @@ export const handler = async (event: any) => {
             attachmentBuffer,
             attachmentName,
             nursesSignature,
-            body
+            body,
+            requestedBy: requesterEmail
         });
 
         console.log('Gmail send response', gmailResponse);

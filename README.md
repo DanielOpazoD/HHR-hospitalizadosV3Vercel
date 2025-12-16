@@ -176,6 +176,11 @@ El script genera un registro demo y llama a la función serverless `/.netlify/fu
 - En **Configurar correo** puedes agregar/quitar destinatarios y editar el mensaje predeterminado (incluye la firma automática del turno noche del día seleccionado). Los cambios se guardan en el navegador.
 - Al presionar **Enviar correo** se mostrará una confirmación con la fecha y la lista de destinatarios para evitar envíos involuntarios. Si confirmas, se reconstruye el Excel del día y se envía vía la función serverless de Netlify usando tus credenciales de Gmail.
 
+#### ¿Puedo reutilizar el inicio de sesión con Google (Firebase) para enviar el censo?
+- Son flujos distintos: el inicio de sesión con Firebase solo otorga un **ID token** de autenticación y no incluye el scope `gmail.send`. Para que Gmail permita enviar en nombre de la cuenta institucional necesitas un **refresh token** emitido con ese scope y almacenado en el backend (`GMAIL_*`).
+- Aun así se aprovecha la sesión actual: el correo se envía con la cuenta institucional configurada, pero el servidor anexa en el cuerpo quién estaba autenticado en Firebase al momento de hacer clic (cabecera `x-user-email`). Eso sirve para trazabilidad/auditoría sin exponer las credenciales de Gmail en el cliente.
+- Si deseas validar el rol con Firebase de forma más estricta en la función serverless, agrega la verificación del ID token en `netlify/functions/send-census-email.ts` antes de revisar `ALLOWED_ROLES`.
+
 > 💡 La API key se carga en tiempo de ejecución desde una función serverless de Netlify, por lo que no se incluye en el bundle ni en los assets públicos.
 > Si prefieres evitar copiarla en texto plano en `.env`, codifícala en base64 y usa `VITE_FIREBASE_API_KEY_B64`:
 > `echo -n "AIza..." | base64`
