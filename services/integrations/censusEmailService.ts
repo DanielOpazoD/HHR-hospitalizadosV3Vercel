@@ -6,6 +6,7 @@ interface TriggerEmailParams {
     record: DailyRecord;
     recipients?: string[];
     nursesSignature?: string;
+    body?: string;
     userEmail?: string | null;
     userRole?: string | null;
 }
@@ -13,7 +14,7 @@ interface TriggerEmailParams {
 const ENDPOINT = '/.netlify/functions/send-census-email';
 
 export const triggerCensusEmail = async (params: TriggerEmailParams) => {
-    const { date, record, recipients, nursesSignature, userEmail, userRole } = params;
+    const { date, record, recipients, nursesSignature, body, userEmail, userRole } = params;
 
     const response = await fetch(ENDPOINT, {
         method: 'POST',
@@ -26,7 +27,8 @@ export const triggerCensusEmail = async (params: TriggerEmailParams) => {
             date,
             record,
             recipients: recipients && recipients.length > 0 ? recipients : CENSUS_DEFAULT_RECIPIENTS,
-            nursesSignature
+            nursesSignature,
+            body
         })
     });
 

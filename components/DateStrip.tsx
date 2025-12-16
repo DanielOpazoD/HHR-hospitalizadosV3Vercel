@@ -17,6 +17,7 @@ interface DateStripProps {
     onOpenBedManager?: () => void;
     onPrint?: () => void;
     onExportExcel?: () => void;
+    onConfigureEmail?: () => void;
     onSendEmail?: () => void;
     emailStatus?: 'idle' | 'loading' | 'success' | 'error';
     emailErrorMessage?: string | null;
@@ -34,6 +35,7 @@ export const DateStrip: React.FC<DateStripProps> = ({
     onOpenBedManager,
     onPrint,
     onExportExcel,
+    onConfigureEmail,
     onSendEmail,
     emailStatus = 'idle',
     emailErrorMessage,
@@ -97,6 +99,18 @@ export const DateStrip: React.FC<DateStripProps> = ({
                         >
                             <FileSpreadsheet size={14} />
                             EXCEL
+                        </button>
+                    )}
+
+                    {/* Configure Email Button */}
+                    {onConfigureEmail && (
+                        <button
+                            onClick={onConfigureEmail}
+                            className="flex items-center gap-1 px-2 py-1 bg-slate-200 text-slate-800 text-xs font-bold rounded hover:bg-slate-300 transition-colors shadow-sm"
+                            title="Configurar destinatarios y mensaje"
+                        >
+                            <Settings size={14} />
+                            Configurar correo
                         </button>
                     )}
 

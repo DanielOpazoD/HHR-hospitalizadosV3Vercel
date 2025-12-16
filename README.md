@@ -152,6 +152,17 @@ TEST_CENSUS_EMAIL=correo_para_probar_endpoint_opcional
 5. Con la cuenta remitente (institucional), ejecuta un script local usando `googleapis` para obtener un **refresh token** con el scope `https://www.googleapis.com/auth/gmail.send`. Guarda `client_id`, `client_secret` y `refresh_token` en las variables anteriores (local, Netlify/Vercel, etc.).
 6. (Opcional) Ajusta la lista de destinatarios por defecto en `constants/email.ts`.
 
+##### Pasos detallados en Google Cloud Console
+1. Accede a [console.cloud.google.com](https://console.cloud.google.com/) con la cuenta institucional.
+2. Crea un proyecto nuevo (o reutiliza uno existente dedicado a hospitalizados) y ve a **Biblioteca** → habilita **Gmail API**.
+3. En **Pantalla de consentimiento OAuth**, selecciona "Externa", define el nombre de la app, correo de soporte y agrega solo los usuarios que pueden enviar el censo. Guarda.
+4. En **Credenciales** → **Crear credenciales** → **ID de cliente de OAuth** → tipo **Aplicación web**. Registra las URLs autorizadas:
+   - **Orígenes**: `http://localhost:3000` y tu dominio de Netlify.
+   - **URIs de redirección**: `http://localhost:3000` y el dominio de Netlify con `/` (la app no usa rutas especiales).
+5. Descarga/guarda el `client_id` y `client_secret`. Ejecuta localmente el script `scripts/testSendCensusEmail.ts` (o un snippet con `googleapis`) para autorizar la cuenta remitente con el scope `https://www.googleapis.com/auth/gmail.send` y obtener el `refresh_token`.
+6. Carga `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET` y `GMAIL_REFRESH_TOKEN` en `.env` y en las variables de entorno de Netlify. Reimplanta para que la función serverless los lea.
+7. Si Google marca la app como "sin verificar", asegúrate de mantener la lista de usuarios de prueba actualizada o inicia el flujo de verificación.
+
 Para probar el endpoint de correo sin levantar la app, usa:
 
 ```bash
@@ -159,6 +170,11 @@ npm run test:send-email
 ```
 
 El script genera un registro demo y llama a la función serverless `/.netlify/functions/send-census-email` respetando los headers de rol.
+
+#### Flujo en la app (Netlify desplegado)
+- En el censo diario verás dos botones nuevos: **Configurar correo** y **Enviar correo**.
+- En **Configurar correo** puedes agregar/quitar destinatarios y editar el mensaje predeterminado (incluye la firma automática del turno noche del día seleccionado). Los cambios se guardan en el navegador.
+- Al presionar **Enviar correo** se mostrará una confirmación con la fecha y la lista de destinatarios para evitar envíos involuntarios. Si confirmas, se reconstruye el Excel del día y se envía vía la función serverless de Netlify usando tus credenciales de Gmail.
 
 > 💡 La API key se carga en tiempo de ejecución desde una función serverless de Netlify, por lo que no se incluye en el bundle ni en los assets públicos.
 > Si prefieres evitar copiarla en texto plano en `.env`, codifícala en base64 y usa `VITE_FIREBASE_API_KEY_B64`:

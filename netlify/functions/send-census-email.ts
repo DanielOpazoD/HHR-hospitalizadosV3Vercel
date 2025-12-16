@@ -29,7 +29,7 @@ export const handler = async (event: any) => {
 
     try {
         const payload = JSON.parse(event.body);
-        const { date, record, recipients, nursesSignature } = payload;
+        const { date, record, recipients, nursesSignature, body } = payload;
 
         if (!date || !record) {
             return {
@@ -49,7 +49,8 @@ export const handler = async (event: any) => {
             recipients: resolvedRecipients,
             attachmentBuffer,
             attachmentName,
-            nursesSignature
+            nursesSignature,
+            body
         });
 
         console.log('Gmail send response', gmailResponse);
