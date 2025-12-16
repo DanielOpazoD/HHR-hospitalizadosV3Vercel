@@ -146,3 +146,4 @@ export {
     generateDemoForWeek,
     generateDemoForMonth
 } from './utils/demoDataGenerator';
+export { generateCensusMasterExcel } from './censusMasterExport';

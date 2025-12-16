@@ -6,6 +6,7 @@ import { Navbar, DateStrip, SettingsModal, TestAgent, SyncWatcher, DemoModePanel
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ModuleType } from './components';
 import { canEditModule } from './utils/permissions';
+import { generateCensusMasterExcel } from './services';
 
 // ========== LAZY LOADED VIEWS ==========
 // These views are loaded on-demand when the user navigates to them
@@ -132,6 +133,7 @@ function App() {
                 existingDaysInMonth={existingDaysInMonth}
                 onOpenBedManager={() => setShowBedManager(true)}
                 onPrint={() => window.print()}
+                onExportExcel={currentModule === 'CENSUS' ? () => generateCensusMasterExcel(selectedYear, selectedMonth, selectedDay) : undefined}
                 syncStatus={syncStatus}
                 lastSyncTime={lastSyncTime}
               />
