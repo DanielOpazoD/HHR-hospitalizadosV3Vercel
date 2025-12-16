@@ -3,7 +3,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DailyRecord, PatientData } from '../types';
 import { BEDS } from '../constants';
-import { calculateStats, getStoredRecords, getRecordForDate, formatDateDDMMYYYY } from './dataService';
+import { getStoredRecords, getRecordForDate, formatDateDDMMYYYY } from './dataService';
 
 // --- UTILS ---
 
@@ -98,161 +98,6 @@ const extractRowsFromRecord = (record: DailyRecord) => {
     return rows;
 };
 
-const getNightShiftNurses = (record: DailyRecord) => {
-    const nurses = record.nursesNightShift || record.nurses || [];
-    return nurses.filter(Boolean);
-};
-
-const buildCensusRows = (record: DailyRecord) => {
-    const rows: any[][] = [];
-
-    BEDS.forEach(bed => {
-        const p = record.beds[bed.id];
-        if (!p) return;
-
-        const isBlocked = p.isBlocked;
-        const hasMain = Boolean(p.patientName && p.patientName.trim());
-        const hasClinicalCrib = Boolean(p.clinicalCrib?.patientName && p.clinicalCrib.patientName.trim());
-
-        if (isBlocked && !hasMain && !hasClinicalCrib) {
-            rows.push([
-                bed.name,
-                'BLOQUEADA',
-                '-',
-                '-',
-                '-',
-                'Bloqueada',
-                p.origin || '-',
-                p.insurance || '-',
-                p.location || bed.type,
-                bed.type
-            ]);
-            return;
-        }
-
-        if (hasMain) {
-            rows.push([
-                bed.name,
-                p.patientName,
-                p.rut || '-',
-                p.age || '-',
-                p.pathology || '-',
-                p.status || 'Hospitalizado',
-                p.origin || '-',
-                p.insurance || '-',
-                p.location || bed.type,
-                bed.type
-            ]);
-        }
-
-        if (hasClinicalCrib && p.clinicalCrib) {
-            rows.push([
-                `${bed.name} (Cuna)`,
-                p.clinicalCrib.patientName,
-                p.clinicalCrib.rut || '-',
-                p.clinicalCrib.age || '-',
-                p.clinicalCrib.pathology || '-',
-                p.clinicalCrib.status || 'Hospitalizado',
-                p.clinicalCrib.origin || '-',
-                p.clinicalCrib.insurance || '-',
-                p.location || bed.type,
-                'Cuna'
-            ]);
-        }
-    });
-
-    return rows;
-};
-
-const addSectionTitle = (sheet: ExcelJS.Worksheet, title: string) => {
-    const row = sheet.addRow([title]);
-    row.font = { bold: true };
-};
-
-const addKeyValue = (sheet: ExcelJS.Worksheet, label: string, value: string | number) => {
-    const row = sheet.addRow([label, value]);
-    row.getCell(1).font = { bold: true };
-};
-
-const addTable = (sheet: ExcelJS.Worksheet, header: string[], rows: any[][]) => {
-    sheet.addRow([]);
-    const headerRow = sheet.addRow(header);
-    headerRow.font = { bold: true };
-    rows.forEach(r => sheet.addRow(r));
-};
-
-const addDailySheet = (workbook: ExcelJS.Workbook, record: DailyRecord) => {
-    const dayLabel = formatDateDDMMYYYY(record.date);
-    const sheetName = `${dayLabel.substring(0, 25)}`;
-    const sheet = workbook.addWorksheet(sheetName);
-
-    const stats = calculateStats(record.beds);
-    const nurses = getNightShiftNurses(record);
-    const deathCount = (record.discharges || []).filter(d => d.status === 'Fallecido').length;
-
-    sheet.columns = Array.from({ length: 12 }).map(() => ({ width: 20 }));
-
-    addSectionTitle(sheet, 'Censo diario de servicios hospitalizados - Hospital Hanga Roa');
-    addKeyValue(sheet, 'Fecha', dayLabel);
-    addKeyValue(sheet, 'Enfermero/as (Turno Noche)', nurses.length ? nurses.join(', ') : 'No registrado');
-
-    sheet.addRow([]);
-    addSectionTitle(sheet, 'Censo clínico');
-    addKeyValue(sheet, 'Camas ocupadas', stats.occupiedBeds);
-    addKeyValue(sheet, 'Camas libres', stats.availableCapacity);
-    addKeyValue(sheet, 'Camas bloqueadas', stats.blockedBeds);
-    addKeyValue(sheet, 'Cunas en uso', stats.totalCribsUsed);
-
-    sheet.addRow([]);
-    addSectionTitle(sheet, 'Movimientos');
-    addKeyValue(sheet, 'Altas', record.discharges?.length || 0);
-    addKeyValue(sheet, 'Traslados', record.transfers?.length || 0);
-    addKeyValue(sheet, 'Hospitalización diurna', record.cma?.length || 0);
-    addKeyValue(sheet, 'Fallecimiento', deathCount);
-
-    sheet.addRow([]);
-    addSectionTitle(sheet, 'Tabla general de censo diario');
-    addTable(sheet, ['Cama', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Estado', 'Origen', 'Previsión', 'Ubicación', 'Tipo'], buildCensusRows(record));
-
-    sheet.addRow([]);
-    addSectionTitle(sheet, 'Altas');
-    addTable(sheet, ['Cama', 'Paciente', 'RUT', 'Diagnóstico', 'Estado', 'Tipo de Alta', 'Seguro', 'Origen'], (record.discharges || []).map(d => [
-        d.bedName,
-        d.patientName,
-        d.rut || '-',
-        d.diagnosis || '-',
-        d.status,
-        d.dischargeType || '-',
-        d.insurance || '-',
-        d.origin || '-'
-    ]));
-
-    sheet.addRow([]);
-    addSectionTitle(sheet, 'Traslados');
-    addTable(sheet, ['Cama', 'Paciente', 'RUT', 'Diagnóstico', 'Centro Receptor', 'Medio de traslado', 'Seguro', 'Origen'], (record.transfers || []).map(t => [
-        t.bedName,
-        t.patientName,
-        t.rut || '-',
-        t.diagnosis || '-',
-        t.receivingCenter || '-',
-        t.evacuationMethod || '-',
-        t.insurance || '-',
-        t.origin || '-'
-    ]));
-
-    sheet.addRow([]);
-    addSectionTitle(sheet, 'Hospitalización diurna / CMA');
-    addTable(sheet, ['Ubicación', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Especialidad', 'Tipo intervención'], (record.cma || []).map(c => [
-        c.bedName,
-        c.patientName,
-        c.rut || '-',
-        c.age || '-',
-        c.diagnosis || '-',
-        c.specialty || '-',
-        c.interventionType
-    ]));
-};
-
 
 // --- EXPORT FUNCTIONS ---
 
@@ -312,28 +157,6 @@ export const generateCensusMonthRaw = async (year: number, month: number) => {
     const endDate = `${year}-${mStr}-31`; // Loose end date covers full month
 
     await generateCensusRangeRaw(startDate, endDate);
-};
-
-export const generateCensusMonthMaster = async (referenceDate: string) => {
-    const targetDate = new Date(referenceDate);
-    const year = targetDate.getFullYear();
-    const month = targetDate.getMonth();
-    const monthStr = String(month + 1).padStart(2, '0');
-
-    const records = Object.values(getStoredRecords())
-        .filter(r => r.date.startsWith(`${year}-${monthStr}`))
-        .sort((a, b) => a.date.localeCompare(b.date));
-
-    if (records.length === 0) {
-        alert('No hay registros del censo diario para este mes.');
-        return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-
-    records.forEach(record => addDailySheet(workbook, record));
-
-    await saveWorkbook(workbook, `Censo_Maestro_${monthStr}-${year}`);
 };
 
 

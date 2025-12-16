@@ -6,7 +6,6 @@ import { Navbar, DateStrip, SettingsModal, TestAgent, SyncWatcher, DemoModePanel
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ModuleType } from './components';
 import { canEditModule } from './utils/permissions';
-import * as ReportService from './services/reportService';
 
 // ========== LAZY LOADED VIEWS ==========
 // These views are loaded on-demand when the user navigates to them
@@ -75,11 +74,6 @@ function App() {
   // ========== FILE OPERATIONS (extracted to hook) ==========
   const { handleExportJSON, handleExportCSV, handleImportJSON } = useFileOperations(record, refresh);
 
-  // ========== REPORTS ==========
-  const handleExportMonthlyExcel = React.useCallback(() => {
-    ReportService.generateCensusMonthMaster(currentDateString);
-  }, [currentDateString]);
-
   // ========== UI STATE ==========
   const [currentModule, setCurrentModule] = useState<ModuleType>('CENSUS');
   const [censusViewMode, setCensusViewMode] = useState<'REGISTER' | 'ANALYTICS'>('REGISTER');
@@ -138,7 +132,6 @@ function App() {
                 existingDaysInMonth={existingDaysInMonth}
                 onOpenBedManager={() => setShowBedManager(true)}
                 onPrint={() => window.print()}
-                onExportExcel={handleExportMonthlyExcel}
                 syncStatus={syncStatus}
                 lastSyncTime={lastSyncTime}
               />
