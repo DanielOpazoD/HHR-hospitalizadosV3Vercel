@@ -136,7 +136,29 @@ VITE_FIREBASE_STORAGE_BUCKET=tu-proyecto.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abc123
 GEMINI_API_KEY=tu_gemini_api_key_opcional
+# Gmail API para envío automático de censo
+GMAIL_CLIENT_ID=tu_client_id_google
+GMAIL_CLIENT_SECRET=tu_client_secret_google
+GMAIL_REFRESH_TOKEN=refresh_token_con_scope_gmail.send
+TEST_CENSUS_EMAIL=correo_para_probar_endpoint_opcional
 ```
+
+#### Configurar Gmail API (OAuth)
+
+1. Entra a **Google Cloud Console** y crea un proyecto nuevo.
+2. Habilita **Gmail API**.
+3. Configura la pantalla de consentimiento (externa) y limita a los usuarios necesarios.
+4. Crea una credencial **OAuth Client ID (Web)** agregando tus URLs de desarrollo y producción.
+5. Con la cuenta remitente (institucional), ejecuta un script local usando `googleapis` para obtener un **refresh token** con el scope `https://www.googleapis.com/auth/gmail.send`. Guarda `client_id`, `client_secret` y `refresh_token` en las variables anteriores (local, Netlify/Vercel, etc.).
+6. (Opcional) Ajusta la lista de destinatarios por defecto en `constants/email.ts`.
+
+Para probar el endpoint de correo sin levantar la app, usa:
+
+```bash
+npm run test:send-email
+```
+
+El script genera un registro demo y llama a la función serverless `/.netlify/functions/send-census-email` respetando los headers de rol.
 
 > 💡 La API key se carga en tiempo de ejecución desde una función serverless de Netlify, por lo que no se incluye en el bundle ni en los assets públicos.
 > Si prefieres evitar copiarla en texto plano en `.env`, codifícala en base64 y usa `VITE_FIREBASE_API_KEY_B64`:

@@ -6,7 +6,7 @@ import { Navbar, DateStrip, SettingsModal, TestAgent, SyncWatcher, DemoModePanel
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ModuleType } from './components';
 import { canEditModule } from './utils/permissions';
-import { generateCensusMasterExcel } from './services';
+import { generateCensusMasterExcel, triggerCensusEmail } from './services';
 
 // ========== LAZY LOADED VIEWS ==========
 // These views are loaded on-demand when the user navigates to them
@@ -72,6 +72,46 @@ function App() {
   // Calculate existing days (depends on record changes)
   const existingDaysInMonth = useExistingDays(selectedYear, selectedMonth, record);
 
+  const nurseSignature = React.useMemo(() => {
+    if (!record) return '';
+    const nightShift = record.nursesNightShift?.filter(n => n && n.trim()) || [];
+    if (nightShift.length > 0) {
+      return `Enfermería turno noche – ${nightShift.join(' / ')}`;
+    }
+    const nurses = record.nurses?.filter(n => n && n.trim()) || [];
+    return nurses.join(' / ');
+  }, [record]);
+
+  const handleSendCensusEmail = async () => {
+    if (!record) {
+      alert('No hay datos del censo para enviar.');
+      return;
+    }
+
+    if (emailStatus === 'loading') return;
+
+    setEmailError(null);
+    setEmailStatus('loading');
+
+    try {
+      await triggerCensusEmail({
+        date: currentDateString,
+        record,
+        nursesSignature: nurseSignature || undefined,
+        userEmail: user?.email,
+        userRole: (user as any)?.role || role
+      });
+      setEmailStatus('success');
+      setTimeout(() => setEmailStatus('idle'), 3000);
+    } catch (error: any) {
+      console.error('Error enviando correo de censo', error);
+      const message = error?.message || 'No se pudo enviar el correo.';
+      setEmailError(message);
+      setEmailStatus('error');
+      alert(message);
+    }
+  };
+
   // ========== FILE OPERATIONS (extracted to hook) ==========
   const { handleExportJSON, handleExportCSV, handleImportJSON } = useFileOperations(record, refresh);
 
@@ -82,6 +122,8 @@ function App() {
   const [isTestAgentRunning, setIsTestAgentRunning] = useState(false);
   const [showBedManager, setShowBedManager] = useState(false);
   const [showDemoPanel, setShowDemoPanel] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   // ========== LOADING STATE ==========
   if (authLoading) {
@@ -136,6 +178,9 @@ function App() {
                 onExportExcel={currentModule === 'CENSUS'
                   ? () => generateCensusMasterExcel(selectedYear, selectedMonth, selectedDay)
                   : undefined}
+                onSendEmail={currentModule === 'CENSUS' ? handleSendCensusEmail : undefined}
+                emailStatus={emailStatus}
+                emailErrorMessage={emailError}
                 syncStatus={syncStatus}
                 lastSyncTime={lastSyncTime}
               />

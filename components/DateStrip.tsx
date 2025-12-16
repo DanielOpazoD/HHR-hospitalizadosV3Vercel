@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Printer, Database, FileSpreadsheet } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Printer, Database, FileSpreadsheet, Send } from 'lucide-react';
 import clsx from 'clsx';
 import { MONTH_NAMES } from '../constants';
 import { useDemoMode } from '../context/DemoModeContext';
@@ -17,6 +17,9 @@ interface DateStripProps {
     onOpenBedManager?: () => void;
     onPrint?: () => void;
     onExportExcel?: () => void;
+    onSendEmail?: () => void;
+    emailStatus?: 'idle' | 'loading' | 'success' | 'error';
+    emailErrorMessage?: string | null;
     syncStatus?: 'idle' | 'saving' | 'saved' | 'error';
     lastSyncTime?: Date | null;
 }
@@ -31,6 +34,9 @@ export const DateStrip: React.FC<DateStripProps> = ({
     onOpenBedManager,
     onPrint,
     onExportExcel,
+    onSendEmail,
+    emailStatus = 'idle',
+    emailErrorMessage,
     syncStatus,
     lastSyncTime
 }) => {
@@ -91,6 +97,25 @@ export const DateStrip: React.FC<DateStripProps> = ({
                         >
                             <FileSpreadsheet size={14} />
                             EXCEL
+                        </button>
+                    )}
+
+                    {/* Send Email Button */}
+                    {onSendEmail && (
+                        <button
+                            onClick={onSendEmail}
+                            disabled={emailStatus === 'loading'}
+                            className={clsx(
+                                "flex items-center gap-1 px-2 py-1 text-xs font-bold rounded transition-colors shadow-sm",
+                                emailStatus === 'success'
+                                    ? 'bg-blue-700 text-white'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white',
+                                emailStatus === 'loading' && 'opacity-70 cursor-not-allowed'
+                            )}
+                            title={emailStatus === 'error' ? (emailErrorMessage || 'Ocurrió un error al enviar el correo') : "Enviar censo por correo"}
+                        >
+                            <Send size={14} />
+                            {emailStatus === 'loading' ? 'Enviando...' : emailStatus === 'success' ? 'Enviado' : 'Enviar correo'}
                         </button>
                     )}
 

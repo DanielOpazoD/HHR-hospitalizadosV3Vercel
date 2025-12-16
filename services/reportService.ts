@@ -1,9 +1,10 @@
 
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { DailyRecord, PatientData } from '../types';
+import { DailyRecord } from '../types';
+import { getStoredRecords, getRecordForDate } from './dataService';
+import { buildCensusDailyRawWorkbook, extractRowsFromRecord, getCensusRawHeader } from './exporters/censusRawWorkbook';
 import { BEDS } from '../constants';
-import { getStoredRecords, getRecordForDate, formatDateDDMMYYYY } from './dataService';
 
 // --- UTILS ---
 
@@ -12,92 +13,6 @@ const saveWorkbook = async (workbook: ExcelJS.Workbook, filename: string) => {
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(blob, filename + '.xlsx');
 };
-
-const getRawHeader = () => [
-    'FECHA', 'CAMA', 'TIPO_CAMA', 'UBICACION', 'MODO_CAMA', 'TIENE_ACOMPANANTE',
-    'BLOQUEADA', 'MOTIVO_BLOQUEO',
-    'PACIENTE', 'RUT', 'EDAD', 'SEXO', 'PREVISION', 'ORIGEN', 'ORIGEN_INGRESO', 'ES_RAPANUI',
-    'DIAGNOSTICO', 'ESPECIALIDAD', 'ESTADO', 'FECHA_INGRESO',
-    'BRAZALETE', 'POSTRADO', 'DISPOSITIVOS', 'COMP_QUIRURGICA', 'UPC',
-    'ENFERMEROS', 'ULTIMA_ACTUALIZACION'
-];
-
-const generateRawRow = (date: string, bedId: string, bedName: string, bedType: string, p: PatientData, nurses: string[], lastUpdated: string, locationOverride?: string) => {
-    return [
-        date,
-        bedId,
-        bedType,
-        locationOverride || p.location || '',
-        p.bedMode || 'Cama',
-        p.hasCompanionCrib ? 'SI' : 'NO',
-        p.isBlocked ? 'SI' : 'NO',
-        p.blockedReason || '',
-        p.patientName || '',
-        p.rut || '',
-        p.age || '',
-        p.biologicalSex || '',
-        p.insurance || '',
-        p.origin || '',
-        p.admissionOrigin || '',
-        p.isRapanui ? 'SI' : 'NO',
-        p.pathology || '',
-        p.specialty || '',
-        p.status || '',
-        formatDateDDMMYYYY(p.admissionDate),
-        p.hasWristband ? 'SI' : 'NO',
-        p.isBedridden ? 'SI' : 'NO',
-        p.devices?.join(', ') || '',
-        p.surgicalComplication ? 'SI' : 'NO',
-        p.isUPC ? 'SI' : 'NO',
-        nurses.join(' & '),
-        new Date(lastUpdated).toLocaleString()
-    ];
-};
-
-/**
- * Extracts all patient data from a daily record into a flat array of rows
- */
-const extractRowsFromRecord = (record: DailyRecord) => {
-    const rows: any[][] = [];
-    const nurses = record.nurses || (record.nurseName ? [record.nurseName] : []);
-    const date = record.date;
-    const activeExtras = record.activeExtraBeds || [];
-
-    BEDS.forEach(bed => {
-        // Skip extra beds if not active
-        if (bed.isExtra && !activeExtras.includes(bed.id)) return;
-
-        const p = record.beds[bed.id];
-        if (!p) return;
-
-        // 1. Main Patient / Bed State
-        // Only export if occupied or blocked
-        const isOccupied = p.patientName && p.patientName.trim() !== '';
-        const isBlocked = p.isBlocked;
-        const hasClinicalCrib = p.clinicalCrib && p.clinicalCrib.patientName;
-
-        if (isOccupied || isBlocked) {
-            rows.push(generateRawRow(date, bed.id, bed.name, bed.type, p, nurses, record.lastUpdated));
-        }
-
-        // 2. Clinical Crib (Nested)
-        if (hasClinicalCrib && p.clinicalCrib) {
-            rows.push(generateRawRow(
-                date,
-                bed.id + '-C',
-                bed.name + ' (Cuna)',
-                'Cuna',
-                p.clinicalCrib,
-                nurses,
-                record.lastUpdated,
-                p.location // Inherit location
-            ));
-        }
-    });
-
-    return rows;
-};
-
 
 // --- EXPORT FUNCTIONS ---
 
@@ -108,20 +23,7 @@ export const generateCensusDailyRaw = async (date: string) => {
         return;
     }
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Censo Diario');
-
-    // Header
-    sheet.addRow(getRawHeader());
-
-    // Body
-    const rows = extractRowsFromRecord(record);
-    rows.forEach(r => sheet.addRow(r));
-
-    // Auto-width columns (simple estimation)
-    sheet.columns.forEach(column => {
-        column.width = 20;
-    });
+    const workbook = buildCensusDailyRawWorkbook(record);
 
     await saveWorkbook(workbook, `Censo_HangaRoa_Bruto_${date}`);
 };
@@ -139,7 +41,7 @@ export const generateCensusRangeRaw = async (startDate: string, endDate: string)
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Datos Brutos');
 
-    sheet.addRow(getRawHeader());
+    sheet.addRow(getCensusRawHeader());
 
     dates.forEach(date => {
         const record = allRecords[date];
