@@ -136,7 +136,50 @@ VITE_FIREBASE_STORAGE_BUCKET=tu-proyecto.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abc123
 GEMINI_API_KEY=tu_gemini_api_key_opcional
+# Gmail API para envío automático de censo
+GMAIL_CLIENT_ID=tu_client_id_google
+GMAIL_CLIENT_SECRET=tu_client_secret_google
+GMAIL_REFRESH_TOKEN=refresh_token_con_scope_gmail.send
+TEST_CENSUS_EMAIL=correo_para_probar_endpoint_opcional
 ```
+
+#### Configurar Gmail API (OAuth)
+
+1. Entra a **Google Cloud Console** y crea un proyecto nuevo.
+2. Habilita **Gmail API**.
+3. Configura la pantalla de consentimiento (externa) y limita a los usuarios necesarios.
+4. Crea una credencial **OAuth Client ID (Web)** agregando tus URLs de desarrollo y producción.
+5. Con la cuenta remitente (institucional), ejecuta un script local usando `googleapis` para obtener un **refresh token** con el scope `https://www.googleapis.com/auth/gmail.send`. Guarda `client_id`, `client_secret` y `refresh_token` en las variables anteriores (local, Netlify/Vercel, etc.).
+6. (Opcional) Ajusta la lista de destinatarios por defecto en `constants/email.ts`.
+
+##### Pasos detallados en Google Cloud Console
+1. Accede a [console.cloud.google.com](https://console.cloud.google.com/) con la cuenta institucional.
+2. Crea un proyecto nuevo (o reutiliza uno existente dedicado a hospitalizados) y ve a **Biblioteca** → habilita **Gmail API**.
+3. En **Pantalla de consentimiento OAuth**, selecciona "Externa", define el nombre de la app, correo de soporte y agrega solo los usuarios que pueden enviar el censo. Guarda.
+4. En **Credenciales** → **Crear credenciales** → **ID de cliente de OAuth** → tipo **Aplicación web**. Registra las URLs autorizadas:
+   - **Orígenes**: `http://localhost:3000` y tu dominio de Netlify.
+   - **URIs de redirección**: `http://localhost:3000` y el dominio de Netlify con `/` (la app no usa rutas especiales).
+5. Descarga/guarda el `client_id` y `client_secret`. Ejecuta localmente el script `scripts/testSendCensusEmail.ts` (o un snippet con `googleapis`) para autorizar la cuenta remitente con el scope `https://www.googleapis.com/auth/gmail.send` y obtener el `refresh_token`.
+6. Carga `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET` y `GMAIL_REFRESH_TOKEN` en `.env` y en las variables de entorno de Netlify. Reimplanta para que la función serverless los lea.
+7. Si Google marca la app como "sin verificar", asegúrate de mantener la lista de usuarios de prueba actualizada o inicia el flujo de verificación.
+
+Para probar el endpoint de correo sin levantar la app, usa:
+
+```bash
+npm run test:send-email
+```
+
+El script genera un registro demo y llama a la función serverless `/.netlify/functions/send-census-email` respetando los headers de rol.
+
+#### Flujo en la app (Netlify desplegado)
+- En el censo diario verás dos botones nuevos: **Configurar correo** y **Enviar correo**.
+- En **Configurar correo** puedes agregar/quitar destinatarios y editar el mensaje predeterminado (incluye la firma automática del turno noche del día seleccionado). Los cambios se guardan en el navegador.
+- Al presionar **Enviar correo** se mostrará una confirmación con la fecha y la lista de destinatarios para evitar envíos involuntarios. Si confirmas, se reconstruye el Excel del día y se envía vía la función serverless de Netlify usando tus credenciales de Gmail.
+
+#### ¿Puedo reutilizar el inicio de sesión con Google (Firebase) para enviar el censo?
+- Son flujos distintos: el inicio de sesión con Firebase solo otorga un **ID token** de autenticación y no incluye el scope `gmail.send`. Para que Gmail permita enviar en nombre de la cuenta institucional necesitas un **refresh token** emitido con ese scope y almacenado en el backend (`GMAIL_*`).
+- Aun así se aprovecha la sesión actual: el correo se envía con la cuenta institucional configurada, pero el servidor anexa en el cuerpo quién estaba autenticado en Firebase al momento de hacer clic (cabecera `x-user-email`). Eso sirve para trazabilidad/auditoría sin exponer las credenciales de Gmail en el cliente.
+- Si deseas validar el rol con Firebase de forma más estricta en la función serverless, agrega la verificación del ID token en `netlify/functions/send-census-email.ts` antes de revisar `ALLOWED_ROLES`.
 
 > 💡 La API key se carga en tiempo de ejecución desde una función serverless de Netlify, por lo que no se incluye en el bundle ni en los assets públicos.
 > Si prefieres evitar copiarla en texto plano en `.env`, codifícala en base64 y usa `VITE_FIREBASE_API_KEY_B64`:

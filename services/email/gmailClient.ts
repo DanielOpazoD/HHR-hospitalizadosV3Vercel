@@ -1,0 +1,85 @@
+import { google } from 'googleapis';
+import { buildCensusEmailBody, buildCensusEmailSubject } from '../../constants/email';
+
+interface SendCensusEmailParams {
+    date: string;
+    recipients: string[];
+    attachmentBuffer: ArrayBuffer | Buffer;
+    attachmentName: string;
+    nursesSignature?: string;
+    subject?: string;
+    body?: string;
+    requestedBy?: string;
+}
+
+const getOAuth2Client = () => {
+    const clientId = process.env.GMAIL_CLIENT_ID;
+    const clientSecret = process.env.GMAIL_CLIENT_SECRET;
+    const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
+
+    if (!clientId || !clientSecret || !refreshToken) {
+        throw new Error('Faltan credenciales de Gmail. Configura GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET y GMAIL_REFRESH_TOKEN.');
+    }
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+    return oauth2Client;
+};
+
+const base64UrlEncode = (value: Buffer) => value
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+const buildMimeMessage = (params: SendCensusEmailParams) => {
+    const { date, recipients, attachmentBuffer, attachmentName, nursesSignature, subject, body, requestedBy } = params;
+
+    const boundary = '----=_Part_0_123456789.123456789';
+    const mailSubject = subject || buildCensusEmailSubject(date);
+    const baseBody = body || buildCensusEmailBody(date, nursesSignature);
+    const auditLine = requestedBy ? `\n\n---\nEnviado por: ${requestedBy} (sesión Firebase)` : '';
+    const mailBody = `${baseBody}${auditLine}`;
+    const attachmentBase64 = Buffer.isBuffer(attachmentBuffer)
+        ? attachmentBuffer.toString('base64')
+        : Buffer.from(attachmentBuffer).toString('base64');
+
+    return [
+        'Content-Type: multipart/mixed; boundary="' + boundary + '"',
+        'MIME-Version: 1.0',
+        'Content-Transfer-Encoding: 7bit',
+        'to: ' + recipients.join(', '),
+        'subject: ' + mailSubject,
+        '',
+        '--' + boundary,
+        'Content-Type: text/plain; charset="UTF-8"',
+        'MIME-Version: 1.0',
+        'Content-Transfer-Encoding: 7bit',
+        '',
+        mailBody,
+        '',
+        '--' + boundary,
+        'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; name="' + attachmentName + '"',
+        'MIME-Version: 1.0',
+        'Content-Transfer-Encoding: base64',
+        'Content-Disposition: attachment; filename="' + attachmentName + '"',
+        '',
+        attachmentBase64,
+        '--' + boundary + '--'
+    ].join('\r\n');
+};
+
+export const sendCensusEmail = async (params: SendCensusEmailParams) => {
+    const oauth2Client = getOAuth2Client();
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const mimeMessage = buildMimeMessage(params);
+    const raw = base64UrlEncode(Buffer.from(mimeMessage));
+
+    const response = await gmail.users.messages.send({
+        userId: 'me',
+        requestBody: { raw }
+    });
+
+    return response.data;
+};
