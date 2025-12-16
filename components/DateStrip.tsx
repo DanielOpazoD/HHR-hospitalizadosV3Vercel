@@ -1,5 +1,15 @@
 import React, { useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Printer, Database } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Settings,
+    Cloud,
+    RefreshCw,
+    AlertTriangle,
+    Printer,
+    Database,
+    FileSpreadsheet
+} from 'lucide-react';
 import clsx from 'clsx';
 import { MONTH_NAMES } from '../constants';
 import { useDemoMode } from '../context/DemoModeContext';
@@ -16,6 +26,7 @@ interface DateStripProps {
     existingDaysInMonth: number[];
     onOpenBedManager?: () => void;
     onPrint?: () => void;
+    onExportExcel?: () => void;
     syncStatus?: 'idle' | 'saving' | 'saved' | 'error';
     lastSyncTime?: Date | null;
 }
@@ -29,6 +40,7 @@ export const DateStrip: React.FC<DateStripProps> = ({
     existingDaysInMonth,
     onOpenBedManager,
     onPrint,
+    onExportExcel,
     syncStatus,
     lastSyncTime
 }) => {
@@ -68,16 +80,31 @@ export const DateStrip: React.FC<DateStripProps> = ({
             <div className="max-w-screen-2xl mx-auto px-4 py-1.5">
                 <div className="flex items-center gap-3">
 
-                    {/* PDF Print Button - Left Side */}
-                    {onPrint && (
-                        <button
-                            onClick={onPrint}
-                            className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-md text-xs font-bold uppercase border border-slate-600 transition-colors shrink-0"
-                            title="Imprimir PDF"
-                        >
-                            <Printer size={14} />
-                            PDF
-                        </button>
+                    {/* PDF / Excel Buttons - Left Side */}
+                    {(onPrint || onExportExcel) && (
+                        <div className="flex items-center gap-1">
+                            {onPrint && (
+                                <button
+                                    onClick={onPrint}
+                                    className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-md text-xs font-bold uppercase border border-slate-600 transition-colors shrink-0"
+                                    title="Imprimir PDF"
+                                >
+                                    <Printer size={14} />
+                                    PDF
+                                </button>
+                            )}
+
+                            {onExportExcel && (
+                                <button
+                                    onClick={onExportExcel}
+                                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-md text-xs font-bold uppercase border border-emerald-700 transition-colors shrink-0"
+                                    title="Exportar Excel mensual"
+                                >
+                                    <FileSpreadsheet size={14} />
+                                    Excel
+                                </button>
+                            )}
+                        </div>
                     )}
 
                     <div className="h-5 w-px bg-slate-200"></div>
