@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Printer, Database, FileSpreadsheet, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Database, FileSpreadsheet, Send } from 'lucide-react';
 import clsx from 'clsx';
 import { MONTH_NAMES } from '../constants';
 import { useDemoMode } from '../context/DemoModeContext';
@@ -15,7 +15,6 @@ interface DateStripProps {
     daysInMonth: number;
     existingDaysInMonth: number[];
     onOpenBedManager?: () => void;
-    onPrint?: () => void;
     onExportExcel?: () => void;
     onConfigureEmail?: () => void;
     onSendEmail?: () => void;
@@ -33,7 +32,6 @@ export const DateStrip: React.FC<DateStripProps> = ({
     daysInMonth,
     existingDaysInMonth,
     onOpenBedManager,
-    onPrint,
     onExportExcel,
     onConfigureEmail,
     onSendEmail,
@@ -77,18 +75,6 @@ export const DateStrip: React.FC<DateStripProps> = ({
         <div className="bg-white border-b border-slate-200 shadow-sm sticky top-[60px] z-40 print:hidden">
             <div className="max-w-screen-2xl mx-auto px-4 py-1.5">
                 <div className="flex items-center gap-3">
-
-                    {/* PDF Print Button - Left Side */}
-                    {onPrint && (
-                        <button
-                            onClick={onPrint}
-                            className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-md text-xs font-bold uppercase border border-slate-600 transition-colors shrink-0"
-                            title="Imprimir PDF"
-                        >
-                            <Printer size={14} />
-                            PDF
-                        </button>
-                    )}
 
                     {/* Excel Export Button */}
                     {onExportExcel && (
