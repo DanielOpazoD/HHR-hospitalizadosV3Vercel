@@ -32,7 +32,6 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ stats, discharges = []
                     <div className="flex justify-between items-center bg-medical-50 rounded px-1.5 py-0.5">
                         <div className="text-left leading-tight">
                             <span className="text-medical-700 font-medium text-[10px] block">Capacidad servicio</span>
-                            <span className="text-medical-600 text-[9px]">(camas ocupadas + libres - bloqueadas)</span>
                         </div>
                         <span className="font-bold text-medical-900 text-[11px]">{serviceCapacity}</span>
                     </div>
