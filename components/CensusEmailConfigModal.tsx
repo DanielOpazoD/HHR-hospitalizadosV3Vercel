@@ -137,38 +137,46 @@ export const CensusEmailConfigModal: React.FC<Props> = ({
                             {recipients.length === 0 && (
                                 <p className="text-xs text-slate-500">No hay destinatarios. Se usará la lista por defecto si no agregas correos.</p>
                             )}
-                            {recipients.map((email, index) => (
-                                <div key={email + index} className="flex items-center gap-2">
+                            <div className="flex flex-wrap gap-2">
+                                {recipients.map((email, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1"
+                                    >
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => handleRecipientChange(index, e.target.value)}
+                                            className="w-56 border border-slate-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <button
+                                            onClick={() => handleRemoveRecipient(index)}
+                                            className="p-1 text-red-600 hover:text-red-700"
+                                            aria-label="Eliminar destinatario"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <div className="flex items-center gap-2 rounded-lg border border-dashed border-blue-200 px-2 py-1 bg-blue-50/40">
                                     <input
                                         type="email"
-                                        value={email}
-                                        onChange={(e) => handleRecipientChange(index, e.target.value)}
-                                        className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="nuevo@correo.cl"
+                                        value={newRecipient}
+                                        onChange={(e) => setNewRecipient(e.target.value)}
+                                        className="w-56 border border-slate-200 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                     <button
-                                        onClick={() => handleRemoveRecipient(index)}
-                                        className="p-2 text-red-600 hover:text-red-700"
-                                        aria-label="Eliminar destinatario"
+                                        onClick={handleAddRecipient}
+                                        className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-semibold"
                                     >
-                                        <Trash2 size={16} />
+                                        <Plus size={14} />
+                                        <span className="hidden sm:inline">Agregar</span>
                                     </button>
                                 </div>
-                            ))}
-                            <div className="flex items-center gap-2 mt-2">
-                                <input
-                                    type="email"
-                                    placeholder="nuevo@correo.cl"
-                                    value={newRecipient}
-                                    onChange={(e) => setNewRecipient(e.target.value)}
-                                    className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                                <button
-                                    onClick={handleAddRecipient}
-                                    className="flex items-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold"
-                                >
-                                    <Plus size={14} /> Agregar
-                                </button>
                             </div>
+
                             {error && <p className="text-xs text-red-600">{error}</p>}
                         </div>
                     </section>
