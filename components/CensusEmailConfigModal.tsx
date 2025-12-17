@@ -204,9 +204,6 @@ export const CensusEmailConfigModal: React.FC<Props> = ({
                                 'border-slate-200'
                             )}
                         />
-                        <p className="text-xs text-slate-500">
-                            Predeterminado: "{defaultMessage}"{nursesSignature ? ` (firma sugerida: ${nursesSignature})` : ''}
-                        </p>
                     </section>
                 </div>
 

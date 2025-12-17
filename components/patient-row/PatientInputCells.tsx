@@ -50,7 +50,7 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
     return (
         <>
             {/* Name */}
-            <td className="p-2 border-r border-slate-200 min-w-[160px]">
+            <td className="py-1.5 px-2 border-r border-slate-200 min-w-[160px]">
                 <div className="relative">
                     {isSubRow && <div className="absolute left-[-15px] top-2 text-slate-300"><ArrowRight size={14} /></div>}
                     <DebouncedInput
@@ -79,7 +79,7 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
             />
 
             {/* AGE */}
-            <td className="p-2 border-r border-slate-200 w-14 relative">
+            <td className="py-1.5 px-2 border-r border-slate-200 w-14 relative">
                 <input
                     type="text"
                     className={clsx(
@@ -94,7 +94,7 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
             </td>
 
             {/* DIAGNOSTICO */}
-            <td className="p-2 border-r border-slate-200 min-w-[230px]">
+            <td className="py-1.5 px-2 border-r border-slate-200 min-w-[230px]">
                 {isEmpty && !isSubRow ? (
                     <div className="w-full p-1 border border-slate-200 rounded bg-slate-100 text-slate-400 text-xs italic text-center">-</div>
                 ) : (
@@ -113,7 +113,7 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
             </td>
 
             {/* Specialty */}
-            <td className="p-2 border-r border-slate-200 w-28">
+            <td className="py-1.5 px-2 border-r border-slate-200 w-28">
                 {isEmpty && !isSubRow ? (
                     <div className="w-full p-1 border border-slate-200 rounded bg-slate-100 text-slate-400 text-xs italic text-center">-</div>
                 ) : (
@@ -135,7 +135,7 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
             </td>
 
             {/* Status */}
-            <td className="p-2 border-r border-slate-200 w-24">
+            <td className="py-1.5 px-2 border-r border-slate-200 w-24">
                 {isEmpty && !isSubRow ? (
                     <div className="w-full p-1 border border-slate-200 rounded bg-slate-100 text-slate-400 text-xs italic text-center">-</div>
                 ) : (
@@ -160,7 +160,7 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
             </td>
 
             {/* Admission */}
-            <td className="p-2 border-r border-slate-200 w-28">
+            <td className="py-1.5 px-2 border-r border-slate-200 w-28">
                 {isEmpty && !isSubRow ? (
                     <div className="w-full p-1 border border-slate-200 rounded bg-slate-100 text-slate-400 text-xs italic text-center">-</div>
                 ) : (
@@ -187,7 +187,7 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
             </td>
 
             {/* Devices */}
-            <td className="p-2 border-r border-slate-200 w-32 relative">
+            <td className="py-1.5 px-2 border-r border-slate-200 w-32 relative">
                 <DeviceSelector
                     devices={data.devices || []}
                     deviceDetails={data.deviceDetails}

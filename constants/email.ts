@@ -8,11 +8,14 @@ export const buildCensusEmailSubject = (date: string) => `Censo diario hospitali
 
 export const buildCensusEmailBody = (date: string, nursesSignature?: string) => {
     const formattedDate = formatDateDDMMYYYY(date);
-    const signatureLine = nursesSignature ? `\n\nAtentamente,\n${nursesSignature}` : '';
+    const signatureLine = nursesSignature
+        ? `Enfermería turno noche - ${nursesSignature}.`
+        : 'Enfermería turno noche - "nombre enfermera 1" / "nombre enfermera 2".';
     return [
         'Estimados/as,',
         `Se adjunta el censo diario de hospitalizados correspondiente al ${formattedDate}.`,
-        'Este correo fue generado de manera automática para agilizar la entrega del turno noche.',
+        'Sin otro particular, se despiden',
+        '',
         signatureLine
-    ].filter(Boolean).join('\n');
+    ].join('\n');
 };
