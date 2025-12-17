@@ -33,17 +33,17 @@ export const CensusStaffHeader: React.FC<CensusStaffHeaderProps> = ({
         <div className="flex justify-center items-start gap-4 flex-wrap">
             {/* Left: Staff Selectors (Disabled in ReadOnly) */}
             <div className={clsx("flex gap-3 flex-wrap", readOnly && "pointer-events-none opacity-80")}>
-                <TensSelector
-                    tensDayShift={safeTensDayShift}
-                    tensNightShift={safeTensNightShift}
-                    tensList={tensList}
-                    onUpdateTens={onUpdateTens}
-                />
                 <NurseSelector
                     nursesDayShift={safeNursesDayShift}
                     nursesNightShift={safeNursesNightShift}
                     nursesList={nursesList}
                     onUpdateNurse={onUpdateNurse}
+                />
+                <TensSelector
+                    tensDayShift={safeTensDayShift}
+                    tensNightShift={safeTensNightShift}
+                    tensList={tensList}
+                    onUpdateTens={onUpdateTens}
                 />
             </div>
 

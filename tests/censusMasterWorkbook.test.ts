@@ -46,7 +46,7 @@ describe('census master workbook builder', () => {
         expect(workbook.worksheets.map(sheet => sheet.name)).toEqual(['01-05-2024', '02-05-2024']);
         const firstSheet = workbook.worksheets[0];
 
-        expect(firstSheet.getCell('A1').value).toBe('CENSO CLÍNICO DIARIO - HOSPITAL HANGA ROA');
+        expect(firstSheet.getCell('A1').value).toBe('CENSO CAMAS DIARIO - HOSPITAL HANGA ROA');
         expect(firstSheet.getCell('A2').value).toBe('Fecha: 01-05-2024');
         expect(firstSheet.getCell('A6').value).toBe('Ocupadas');
         expect(firstSheet.getCell('A7').value).toBe(1);
@@ -62,7 +62,7 @@ describe('census master workbook builder', () => {
         await workbook.xlsx.load(buffer);
 
         expect(workbook.worksheets[0]?.name).toBe('03-05-2024');
-        expect(workbook.worksheets[0]?.getCell('A1').value).toBe('CENSO CLÍNICO DIARIO - HOSPITAL HANGA ROA');
+        expect(workbook.worksheets[0]?.getCell('A1').value).toBe('CENSO CAMAS DIARIO - HOSPITAL HANGA ROA');
     });
 
     it('builds a stable filename for the selected date', () => {

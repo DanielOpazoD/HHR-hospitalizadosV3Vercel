@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Statistics, DischargeData, TransferData } from '../types';
-import { Activity, Bed, BedDouble, Baby, Building2 } from 'lucide-react';
+import { Activity, Bed, Baby } from 'lucide-react';
 
 interface SummaryCardProps {
     stats: Statistics;
@@ -14,14 +14,16 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ stats, discharges = []
     const deaths = discharges.filter(d => d.status === 'Fallecido').length;
     const liveDischarges = discharges.filter(d => d.status === 'Vivo').length;
     const totalTransfers = transfers.length;
+    // Capacidad servicio = camas ocupadas + libres - bloqueadas
+    const capacidadServicio = stats.occupiedBeds + stats.availableCapacity - stats.blockedBeds;
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-slate-100 h-full flex-shrink-0">
 
-            {/* Sección 1: Censo Clínico */}
+            {/* Sección 1: Censo Camas */}
             <div className="p-2 sm:w-[40%] flex-shrink-0">
                 <h3 className="font-bold text-slate-500 uppercase text-[9px] tracking-wider mb-1.5 flex items-center gap-1">
-                    <Bed size={10} /> Censo Clínico
+                    <Bed size={10} /> Censo Camas
                 </h3>
                 <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
                     <div className="flex justify-between items-center bg-slate-50 rounded px-1.5 py-0.5">
@@ -29,8 +31,8 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ stats, discharges = []
                         <span className="font-bold text-slate-900 text-[11px]">{stats.occupiedBeds}</span>
                     </div>
                     <div className="flex justify-between items-center bg-medical-50 rounded px-1.5 py-0.5">
-                        <span className="text-medical-700 font-medium text-[10px]">Total:</span>
-                        <span className="font-bold text-medical-900 text-[11px]">{stats.totalHospitalized}</span>
+                        <span className="text-medical-700 font-medium text-[10px]">Capacidad servicio:</span>
+                        <span className="font-bold text-medical-900 text-[11px]">{capacidadServicio}</span>
                     </div>
                     <div className="flex justify-between items-center px-1.5 py-0.5">
                         <span className="text-red-500 text-[10px]">Bloqueadas:</span>

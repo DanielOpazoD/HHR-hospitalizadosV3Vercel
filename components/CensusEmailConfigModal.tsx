@@ -133,17 +133,20 @@ export const CensusEmailConfigModal: React.FC<Props> = ({
                                 Restablecer por defecto
                             </button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
                             {recipients.length === 0 && (
-                                <p className="text-xs text-slate-500">No hay destinatarios. Se usará la lista por defecto si no agregas correos.</p>
+                                <p className="text-xs text-slate-500 w-full">No hay destinatarios. Se usará la lista por defecto si no agregas correos.</p>
                             )}
                             {recipients.map((email, index) => (
-                                <div key={email + index} className="flex items-center gap-2">
+                                <div
+                                    key={index}
+                                    className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1"
+                                >
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => handleRecipientChange(index, e.target.value)}
-                                        className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="min-w-[220px] border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                                     />
                                     <button
                                         onClick={() => handleRemoveRecipient(index)}
@@ -154,13 +157,13 @@ export const CensusEmailConfigModal: React.FC<Props> = ({
                                     </button>
                                 </div>
                             ))}
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className="flex items-center gap-2 mt-2 w-full flex-wrap">
                                 <input
                                     type="email"
                                     placeholder="nuevo@correo.cl"
                                     value={newRecipient}
                                     onChange={(e) => setNewRecipient(e.target.value)}
-                                    className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="flex-1 min-w-[220px] border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 <button
                                     onClick={handleAddRecipient}
