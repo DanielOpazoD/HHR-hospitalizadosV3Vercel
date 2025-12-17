@@ -18,6 +18,9 @@ export interface ErrorLog {
     url?: string;
 }
 
+const isDev = (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production')
+    || (typeof import.meta !== 'undefined' && import.meta.env?.DEV);
+
 class ErrorService {
     private static instance: ErrorService;
     private errors: ErrorLog[] = [];
@@ -97,7 +100,7 @@ class ErrorService {
         }
 
         // Log to console in development
-        if (import.meta.env.DEV) {
+        if (isDev) {
             console.error('[ErrorService]', errorLog);
         }
 

@@ -2,6 +2,9 @@ import { initializeApp, type FirebaseOptions, type FirebaseApp } from 'firebase/
 import { getAuth, connectAuthEmulator, type Auth } from 'firebase/auth';
 import { initializeFirestore, connectFirestoreEmulator, enableIndexedDbPersistence, type Firestore } from 'firebase/firestore';
 
+const env = (typeof import.meta !== 'undefined' ? import.meta.env : process.env) as Record<string, string | undefined> & { DEV?: boolean };
+const isDev = (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') || Boolean(env?.DEV);
+
 const decodeBase64 = (rawValue: string) => {
     const value = rawValue?.trim();
     if (!value) return '';
@@ -67,22 +70,22 @@ const fetchRuntimeConfig = async (): Promise<FirebaseOptions> => {
 };
 
 const buildDevConfig = (): FirebaseOptions => {
-    const encodedKey = import.meta.env.VITE_FIREBASE_API_KEY_B64 || '';
-    const plainKey = import.meta.env.VITE_FIREBASE_API_KEY || '';
+    const encodedKey = env?.VITE_FIREBASE_API_KEY_B64 || '';
+    const plainKey = env?.VITE_FIREBASE_API_KEY || '';
     const apiKey = encodedKey ? decodeBase64(encodedKey) : plainKey;
 
     return {
         apiKey,
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID
+        authDomain: env?.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: env?.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: env?.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: env?.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: env?.VITE_FIREBASE_APP_ID
     } satisfies FirebaseOptions;
 };
 
 const loadFirebaseConfig = () => {
-    if (import.meta.env.DEV) {
+    if (isDev) {
         return Promise.resolve(buildDevConfig());
     }
 
@@ -114,14 +117,14 @@ export const firebaseReady = (async () => {
     });
 
     // If emulators are configured, connect (kept for compatibility with existing dev setups)
-    const authEmulatorHost = import.meta.env.VITE_AUTH_EMULATOR_HOST;
-    const firestoreEmulatorHost = import.meta.env.VITE_FIRESTORE_EMULATOR_HOST;
+    const authEmulatorHost = env?.VITE_AUTH_EMULATOR_HOST;
+    const firestoreEmulatorHost = env?.VITE_FIRESTORE_EMULATOR_HOST;
 
-    if (import.meta.env.DEV && authEmulatorHost) {
+    if (isDev && authEmulatorHost) {
         connectAuthEmulator(auth, authEmulatorHost);
     }
 
-    if (import.meta.env.DEV && firestoreEmulatorHost) {
+    if (isDev && firestoreEmulatorHost) {
         const [host, port] = firestoreEmulatorHost.split(':');
         connectFirestoreEmulator(db, host, Number(port));
     }
