@@ -119,21 +119,29 @@ function addHeaderSection(sheet: ExcelJS.Worksheet, record: DailyRecord, startRo
 
     // Title
     const titleRow = sheet.getRow(startRow);
-    titleRow.getCell(1).value = 'CENSO CAMAS DIARIO - HOSPITAL HANGA ROA';
-    titleRow.getCell(1).font = { bold: true, size: 14 };
-    sheet.mergeCells(startRow, 1, startRow, 6);
+    titleRow.height = 22;
+    titleRow.getCell(1).value = 'CENSO CLÍNICO DIARIO - HOSPITAL HANGA ROA';
+    titleRow.getCell(1).font = { bold: true, size: 16 };
+    titleRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF5B9BD5' } };
+    titleRow.getCell(1).font = { ...titleRow.getCell(1).font, color: { argb: 'FFFFFFFF' } };
+    sheet.mergeCells(startRow, 1, startRow, 15);
 
     // Date
     const dateRow = sheet.getRow(startRow + 1);
+    dateRow.height = 18;
     dateRow.getCell(1).value = `Fecha: ${formattedDate}`;
-    dateRow.getCell(1).font = { bold: true };
+    dateRow.getCell(1).font = { bold: true, size: 11 };
+    sheet.mergeCells(startRow + 1, 1, startRow + 1, 5);
 
     // Nurses (Night Shift only as per requirement)
     const nurses = record.nursesNightShift?.filter(n => n && n.trim()) || [];
     const nurseText = nurses.length > 0 ? nurses.join(', ') : 'Sin asignar';
     const nurseRow = sheet.getRow(startRow + 2);
+    nurseRow.height = 18;
     nurseRow.getCell(1).value = `Enfermeras Turno Noche: ${nurseText}`;
-    nurseRow.getCell(1).font = { italic: true };
+    nurseRow.getCell(1).font = { italic: true, size: 10 };
+    sheet.mergeCells(startRow + 2, 1, startRow + 2, 15);
 
     return startRow + 3;
 }
@@ -157,15 +165,18 @@ function addSummarySection(
 
     // Row 1: Section headers
     const headerRow = sheet.getRow(startRow);
+    headerRow.height = 20;
     headerRow.getCell(1).value = 'CENSO CAMAS';
     headerRow.getCell(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     headerRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
     sheet.mergeCells(startRow, 1, startRow, 4);
+    headerRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
 
     headerRow.getCell(5).value = 'MOVIMIENTOS';
     headerRow.getCell(5).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     headerRow.getCell(5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF70AD47' } };
     sheet.mergeCells(startRow, 5, startRow, 8);
+    headerRow.getCell(5).alignment = { horizontal: 'center', vertical: 'middle' };
 
     // Row 2: Labels
     const labelRow = sheet.getRow(startRow + 1);
@@ -180,6 +191,13 @@ function addSummarySection(
     labelRow.eachCell(cell => {
         cell.font = { bold: true, size: 9 };
         cell.alignment = { horizontal: 'center' };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE7E6E6' } };
+        cell.border = {
+            top: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+            left: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+            bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+            right: { style: 'thin', color: { argb: 'FFBFBFBF' } }
+        };
     });
 
     // Row 3: Values
@@ -194,6 +212,14 @@ function addSummarySection(
     valueRow.getCell(8).value = deceased;
     valueRow.eachCell(cell => {
         cell.alignment = { horizontal: 'center' };
+        cell.font = { size: 11 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+        cell.border = {
+            top: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+            left: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+            bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+            right: { style: 'thin', color: { argb: 'FFBFBFBF' } }
+        };
     });
 
     // Row 4: Capacity summary
@@ -202,7 +228,8 @@ function addSummarySection(
     capacityRow.getCell(2).value = `Disponibles: ${stats.availableCapacity}`;
     capacityRow.getCell(3).value = `Total Pacientes: ${stats.totalHospitalized}`;
     capacityRow.eachCell(cell => {
-        cell.font = { size: 9 };
+        cell.font = { size: 10, italic: true };
+        cell.alignment = { horizontal: 'left' };
     });
 
     return startRow + 4;
@@ -217,6 +244,7 @@ function addCensusTable(sheet: ExcelJS.Worksheet, record: DailyRecord, startRow:
 
     // Header row
     const headerRow = sheet.getRow(startRow);
+    headerRow.height = 20;
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
@@ -292,12 +320,15 @@ function addCensusRow(
             bottom: { style: 'thin' },
             right: { style: 'thin' }
         };
+        cell.font = { size: 10 };
 
         // Color blocked rows or UPC
         if (p.isBlocked) {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8CBAD' } };
         } else if (p.isUPC) {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2EFDA' } };
+        } else if (rowNumber % 2 === 0) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7F7F7' } };
         }
     });
 
@@ -327,6 +358,7 @@ function addDischargesTable(sheet: ExcelJS.Worksheet, discharges: DischargeData[
 
     // Header row
     const headerRow = sheet.getRow(startRow);
+    headerRow.height = 20;
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
@@ -365,6 +397,7 @@ function addDischargesTable(sheet: ExcelJS.Worksheet, discharges: DischargeData[
         values.forEach((value, idx) => {
             const cell = row.getCell(idx + 1);
             cell.value = value;
+            cell.font = { size: 10 };
             cell.border = {
                 top: { style: 'thin' },
                 left: { style: 'thin' },
@@ -388,6 +421,7 @@ function addTransfersTable(sheet: ExcelJS.Worksheet, transfers: TransferData[], 
 
     // Header row
     const headerRow = sheet.getRow(startRow);
+    headerRow.height = 20;
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
@@ -426,6 +460,7 @@ function addTransfersTable(sheet: ExcelJS.Worksheet, transfers: TransferData[], 
         values.forEach((value, idx) => {
             const cell = row.getCell(idx + 1);
             cell.value = value;
+            cell.font = { size: 10 };
             cell.border = {
                 top: { style: 'thin' },
                 left: { style: 'thin' },
@@ -449,6 +484,7 @@ function addCMATable(sheet: ExcelJS.Worksheet, cma: CMAData[], startRow: number)
 
     // Header row
     const headerRow = sheet.getRow(startRow);
+    headerRow.height = 20;
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
@@ -487,6 +523,7 @@ function addCMATable(sheet: ExcelJS.Worksheet, cma: CMAData[], startRow: number)
         values.forEach((value, idx) => {
             const cell = row.getCell(idx + 1);
             cell.value = value;
+            cell.font = { size: 10 };
             cell.border = {
                 top: { style: 'thin' },
                 left: { style: 'thin' },
