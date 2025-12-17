@@ -178,10 +178,6 @@ export const PatientInputCells: React.FC<PatientInputCellsProps> = ({
                 )}
             </td>
 
-            {/* Checkboxes */}
-            <td className="p-1 border-r border-slate-200 text-center w-10">
-                <input type="checkbox" checked={data.hasWristband || false} onChange={handleCheck('hasWristband')} className="w-4 h-4 text-medical-600 rounded" title="Brazalete" disabled={readOnly} />
-            </td>
             <td className="p-1 border-r border-slate-200 text-center w-10">
                 <input type="checkbox" checked={data.isBedridden || false} onChange={handleCheck('isBedridden')} className="w-4 h-4 text-medical-600 rounded" title="Postrado" disabled={readOnly} />
             </td>

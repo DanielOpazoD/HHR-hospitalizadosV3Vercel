@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { BedDefinition, PatientData, DeviceDetails } from '../types';
 import { AlertCircle, GitBranch, User } from 'lucide-react';
 import clsx from 'clsx';
@@ -26,6 +26,21 @@ const PatientRowComponent: React.FC<PatientRowProps> = ({ bed, data, currentDate
     const isBlocked = data.isBlocked;
     const [showDemographics, setShowDemographics] = useState(false);
     const [showCribDemographics, setShowCribDemographics] = useState(false);
+
+    // Force wristband to "Sí/Ticket" for all patients (main and crib) since the column is hidden in UI
+    useEffect(() => {
+        if (readOnly) return;
+        if (!data.hasWristband) {
+            updatePatient(bed.id, 'hasWristband', true);
+        }
+    }, [data.hasWristband, updatePatient, bed.id, readOnly]);
+
+    useEffect(() => {
+        if (readOnly || !data.clinicalCrib) return;
+        if (!data.clinicalCrib.hasWristband) {
+            updateClinicalCrib(bed.id, 'hasWristband', true);
+        }
+    }, [bed.id, data.clinicalCrib, data.clinicalCrib?.hasWristband, readOnly, updateClinicalCrib]);
 
     // Defaults
     const isCunaMode = data.bedMode === 'Cuna';
@@ -189,7 +204,7 @@ const PatientRowComponent: React.FC<PatientRowProps> = ({ bed, data, currentDate
 
                 {/* Data Cells - Always render PatientInputCells to preserve focus */}
                 {isBlocked ? (
-                    <td colSpan={12} className="py-2 px-3 bg-slate-100 text-center">
+                    <td colSpan={11} className="py-2 px-3 bg-slate-100 text-center">
                         <div className="text-slate-500 text-sm flex items-center justify-center gap-2">
                             <AlertCircle size={14} />
                             <span className="font-medium">Bloqueada</span>

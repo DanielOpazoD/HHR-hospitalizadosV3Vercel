@@ -79,7 +79,7 @@ export const PatientDataSchema: z.ZodType<unknown> = z.lazy(() =>
         specialty: SpecialtySchema.default(''),
         status: PatientStatusSchema.default(''),
         admissionDate: z.string().default(''),
-        hasWristband: z.boolean().default(false),
+        hasWristband: z.boolean().default(true),
         isBedridden: z.boolean().default(false),
         devices: z.array(z.string()).default([]),
         deviceDetails: DeviceDetailsSchema.optional(),
