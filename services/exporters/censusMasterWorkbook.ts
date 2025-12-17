@@ -119,7 +119,7 @@ function addHeaderSection(sheet: ExcelJS.Worksheet, record: DailyRecord, startRo
 
     // Title
     const titleRow = sheet.getRow(startRow);
-    titleRow.getCell(1).value = 'CENSO CLÍNICO DIARIO - HOSPITAL HANGA ROA';
+    titleRow.getCell(1).value = 'CENSO CAMAS DIARIO - HOSPITAL HANGA ROA';
     titleRow.getCell(1).font = { bold: true, size: 14 };
     sheet.mergeCells(startRow, 1, startRow, 6);
 
