@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { DailyRecord, PatientData } from '../../types';
 import { BEDS } from '../../constants';
-import { formatDateDDMMYYYY } from '../dataService';
+import { formatDateDDMMYYYY } from '../utils/dateFormatter';
 
 const getRawHeader = () => [
     'FECHA', 'CAMA', 'TIPO_CAMA', 'UBICACION', 'MODO_CAMA', 'TIENE_ACOMPANANTE',
