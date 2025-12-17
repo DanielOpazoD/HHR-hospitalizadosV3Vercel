@@ -38,7 +38,7 @@ const buildMimeMessage = (params: SendCensusEmailParams) => {
     const boundary = '----=_Part_0_123456789.123456789';
     const mailSubject = subject || buildCensusEmailSubject(date);
     const baseBody = body || buildCensusEmailBody(date, nursesSignature);
-    const auditLine = requestedBy ? `\n\n---\nEnviado por: ${requestedBy} (sesión Firebase)` : '';
+    const auditLine = requestedBy ? `\n\n---\nEnviado por: ${requestedBy}` : '';
     const mailBody = `${baseBody}${auditLine}`;
     const attachmentBase64 = Buffer.isBuffer(attachmentBuffer)
         ? attachmentBuffer.toString('base64')
@@ -73,13 +73,18 @@ export const sendCensusEmail = async (params: SendCensusEmailParams) => {
     const oauth2Client = getOAuth2Client();
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
-    const mimeMessage = buildMimeMessage(params);
-    const raw = base64UrlEncode(Buffer.from(mimeMessage));
+    try {
+        const mimeMessage = buildMimeMessage(params);
+        const raw = base64UrlEncode(Buffer.from(mimeMessage));
 
-    const response = await gmail.users.messages.send({
-        userId: 'me',
-        requestBody: { raw }
-    });
+        const response = await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: { raw }
+        });
 
-    return response.data;
+        return response.data;
+    } catch (error: any) {
+        const reason = error?.response?.data?.error?.message || error?.message || 'Error desconocido de Gmail.';
+        throw new Error(`Error enviando correo a través de Gmail: ${reason}`);
+    }
 };

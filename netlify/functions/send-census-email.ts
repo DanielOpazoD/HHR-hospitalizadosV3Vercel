@@ -1,8 +1,35 @@
 import { CENSUS_DEFAULT_RECIPIENTS } from '../../constants/email';
+import { DailyRecord } from '../../types';
 import { buildCensusDailyRawBuffer } from '../../services/exporters/censusRawWorkbook';
 import { sendCensusEmail } from '../../services/email/gmailClient';
 
 const ALLOWED_ROLES = ['nurse_hospital', 'admin'];
+
+const parseJsonBody = (raw: string | null) => {
+    if (!raw) {
+        throw new Error('Solicitud inválida: falta el cuerpo.');
+    }
+
+    try {
+        return JSON.parse(raw);
+    } catch (error) {
+        throw new Error('Solicitud inválida: el cuerpo no es un JSON válido.');
+    }
+};
+
+const validateRecord = (record: DailyRecord | undefined) => {
+    if (!record) {
+        throw new Error('Solicitud inválida: falta el registro de censo.');
+    }
+
+    if (!record.date) {
+        throw new Error('Solicitud inválida: el registro no contiene la fecha.');
+    }
+
+    if (!record.beds || typeof record.beds !== 'object' || Object.keys(record.beds).length === 0) {
+        throw new Error('Solicitud inválida: el registro no contiene camas ni pacientes.');
+    }
+};
 
 export const handler = async (event: any) => {
     if (event.httpMethod !== 'POST') {
@@ -21,32 +48,27 @@ export const handler = async (event: any) => {
         };
     }
 
-    if (!event.body) {
-        return {
-            statusCode: 400,
-            body: 'Solicitud inválida: falta el cuerpo.'
-        };
-    }
-
     try {
-        const payload = JSON.parse(event.body);
-        const { date, record, recipients, nursesSignature, body } = payload;
+        const payload = parseJsonBody(event.body);
+        const { date, record, recipients, nursesSignature, body } = payload as {
+            date?: string;
+            record?: DailyRecord;
+            recipients?: string[];
+            nursesSignature?: string;
+            body?: string;
+        };
 
-        if (!date || !record) {
-            return {
-                statusCode: 400,
-                body: 'Solicitud inválida: falta la fecha o los datos del censo.'
-            };
-        }
+        validateRecord(record);
+        const censusDate = date || record?.date;
 
-        const attachmentBuffer = await buildCensusDailyRawBuffer(record);
-        const attachmentName = `Censo_HangaRoa_${date}.xlsx`;
+        const attachmentBuffer = await buildCensusDailyRawBuffer(record as DailyRecord);
+        const attachmentName = `Censo_HangaRoa_${censusDate}.xlsx`;
         const resolvedRecipients: string[] = Array.isArray(recipients) && recipients.length > 0
             ? recipients
             : CENSUS_DEFAULT_RECIPIENTS;
 
         const gmailResponse = await sendCensusEmail({
-            date,
+            date: censusDate!,
             recipients: resolvedRecipients,
             attachmentBuffer,
             attachmentName,
@@ -64,8 +86,10 @@ export const handler = async (event: any) => {
     } catch (error: any) {
         console.error('Error enviando correo de censo', error);
         const message = error?.message || 'Error desconocido enviando el correo.';
+        const isClientError = message.startsWith('Solicitud inválida') || message.startsWith('No autorizado');
+
         return {
-            statusCode: 500,
+            statusCode: isClientError ? 400 : 500,
             body: message
         };
     }

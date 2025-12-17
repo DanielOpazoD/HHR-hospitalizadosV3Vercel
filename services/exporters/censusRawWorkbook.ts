@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { DailyRecord, PatientData } from '../../types';
-import { BEDS } from '../../constants';
+import { BEDS } from '../../constants/beds';
 import { formatDateDDMMYYYY } from '../utils/dateFormatter';
 
 const getRawHeader = () => [
@@ -11,6 +11,13 @@ const getRawHeader = () => [
     'BRAZALETE', 'POSTRADO', 'DISPOSITIVOS', 'COMP_QUIRURGICA', 'UPC',
     'ENFERMEROS', 'ULTIMA_ACTUALIZACION'
 ];
+
+const formatLastUpdated = (value?: string) => {
+    if (!value) return '';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '';
+    return parsed.toLocaleString('es-CL', { timeZone: 'America/Santiago' });
+};
 
 const generateRawRow = (
     date: string,
@@ -48,7 +55,7 @@ const generateRawRow = (
         p.surgicalComplication ? 'SI' : 'NO',
         p.isUPC ? 'SI' : 'NO',
         nurses.join(' & '),
-        new Date(lastUpdated).toLocaleString()
+        formatLastUpdated(lastUpdated)
     ];
 };
 
