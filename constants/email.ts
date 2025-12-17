@@ -1,4 +1,4 @@
-import { formatDateDDMMYYYY } from '../services';
+import { formatDateDDMMYYYY } from '../services/utils/dateFormatter';
 
 export const CENSUS_DEFAULT_RECIPIENTS = [
     'hospitalizados@hospitalhangaroa.cl'
