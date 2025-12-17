@@ -3,6 +3,43 @@ import { DailyRecord, PatientData, DischargeData, TransferData, CMAData } from '
 import { BEDS, MONTH_NAMES } from '../../constants';
 import { calculateStats, CensusStatistics } from '../calculations/statsCalculator';
 
+// Colors inspired by the hospital's Excel template
+const COLORS = {
+    headerBlue: 'FF2F5597',
+    headerGreen: 'FF70AD47',
+    accentBlue: 'FFDDEBF7',
+    accentPurple: 'FFE4DFEC',
+    accentOrange: 'FFF4B084',
+    accentLightBlue: 'FFBDD7EE',
+    accentPink: 'FFB4C7E7',
+    tableHeader: 'FFD9E1F2',
+    blocked: 'FFF8CBAD',
+    upc: 'FFE2EFDA'
+};
+
+const BORDER_THIN: Partial<ExcelJS.Borders> = {
+    top: { style: 'thin' },
+    left: { style: 'thin' },
+    bottom: { style: 'thin' },
+    right: { style: 'thin' }
+};
+
+const alignCenter: Partial<ExcelJS.Alignment> = { horizontal: 'center', vertical: 'middle' };
+
+const setCellHeaderStyle = (cell: ExcelJS.Cell, options?: { fill?: string; size?: number }) => {
+    cell.font = { bold: true, size: options?.size ?? 10, color: { argb: 'FF000000' } };
+    cell.alignment = alignCenter;
+    cell.border = BORDER_THIN;
+    if (options?.fill) {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: options.fill } };
+    }
+};
+
+const setDataCellBorder = (cell: ExcelJS.Cell) => {
+    cell.border = BORDER_THIN;
+    cell.alignment = { vertical: 'middle', wrapText: true };
+};
+
 /**
  * Build the formatted "Censo Maestro" workbook from an array of daily records.
  * The records should contain one entry per day of the month (up to the selected day),
@@ -60,6 +97,10 @@ function createDaySheet(workbook: ExcelJS.Workbook, record: DailyRecord): void {
     const sheet = workbook.addWorksheet(sheetName, {
         pageSetup: { paperSize: 9, orientation: 'landscape' }
     });
+
+    sheet.properties.defaultColWidth = 12;
+    sheet.properties.defaultRowHeight = 18;
+    sheet.views = [{ state: 'frozen', ySplit: 6 }];
 
     let currentRow = 1;
 
@@ -120,13 +161,23 @@ function addHeaderSection(sheet: ExcelJS.Worksheet, record: DailyRecord, startRo
     // Title
     const titleRow = sheet.getRow(startRow);
     titleRow.getCell(1).value = 'CENSO CAMAS DIARIO - HOSPITAL HANGA ROA';
-    titleRow.getCell(1).font = { bold: true, size: 14 };
-    sheet.mergeCells(startRow, 1, startRow, 6);
+    titleRow.getCell(1).font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+    titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.headerBlue } };
+    titleRow.getCell(1).alignment = alignCenter;
+    sheet.mergeCells(startRow, 1, startRow, 10);
+    sheet.getRow(startRow).eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
 
     // Date
     const dateRow = sheet.getRow(startRow + 1);
     dateRow.getCell(1).value = `Fecha: ${formattedDate}`;
     dateRow.getCell(1).font = { bold: true };
+    dateRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.accentBlue } };
+    sheet.mergeCells(startRow + 1, 1, startRow + 1, 5);
+    sheet.getRow(startRow + 1).eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
 
     // Nurses (Night Shift only as per requirement)
     const nurses = record.nursesNightShift?.filter(n => n && n.trim()) || [];
@@ -134,6 +185,11 @@ function addHeaderSection(sheet: ExcelJS.Worksheet, record: DailyRecord, startRo
     const nurseRow = sheet.getRow(startRow + 2);
     nurseRow.getCell(1).value = `Enfermeras Turno Noche: ${nurseText}`;
     nurseRow.getCell(1).font = { italic: true };
+    nurseRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.accentPurple } };
+    sheet.mergeCells(startRow + 2, 1, startRow + 2, 5);
+    sheet.getRow(startRow + 2).eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
 
     return startRow + 3;
 }
@@ -159,13 +215,18 @@ function addSummarySection(
     const headerRow = sheet.getRow(startRow);
     headerRow.getCell(1).value = 'CENSO CAMAS';
     headerRow.getCell(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+    headerRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.headerBlue } };
+    headerRow.getCell(1).alignment = alignCenter;
     sheet.mergeCells(startRow, 1, startRow, 4);
 
     headerRow.getCell(5).value = 'MOVIMIENTOS';
     headerRow.getCell(5).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow.getCell(5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF70AD47' } };
+    headerRow.getCell(5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.headerGreen } };
+    headerRow.getCell(5).alignment = alignCenter;
     sheet.mergeCells(startRow, 5, startRow, 8);
+    headerRow.eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
 
     // Row 2: Labels
     const labelRow = sheet.getRow(startRow + 1);
@@ -178,8 +239,7 @@ function addSummarySection(
     labelRow.getCell(7).value = 'Hosp. Diurna';
     labelRow.getCell(8).value = 'Fallecidos';
     labelRow.eachCell(cell => {
-        cell.font = { bold: true, size: 9 };
-        cell.alignment = { horizontal: 'center' };
+        setCellHeaderStyle(cell, { size: 9, fill: COLORS.accentBlue });
     });
 
     // Row 3: Values
@@ -193,7 +253,8 @@ function addSummarySection(
     valueRow.getCell(7).value = cma.length;
     valueRow.getCell(8).value = deceased;
     valueRow.eachCell(cell => {
-        cell.alignment = { horizontal: 'center' };
+        cell.alignment = alignCenter;
+        cell.border = BORDER_THIN;
     });
 
     // Row 4: Capacity summary
@@ -203,6 +264,8 @@ function addSummarySection(
     capacityRow.getCell(3).value = `Total Pacientes: ${stats.totalHospitalized}`;
     capacityRow.eachCell(cell => {
         cell.font = { size: 9 };
+        cell.border = BORDER_THIN;
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.accentPurple } };
     });
 
     return startRow + 4;
@@ -215,20 +278,24 @@ function addSummarySection(
 function addCensusTable(sheet: ExcelJS.Worksheet, record: DailyRecord, startRow: number): number {
     const headers = ['#', 'CAMA', 'TIPO', 'PACIENTE', 'RUT', 'EDAD', 'Dx', 'ESP', 'F. ING', 'ESTADO', 'BRAZ', 'C.QX', 'UPC', 'POST', 'DISPOSITIVOS'];
 
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'TABLA DE PACIENTES HOSPITALIZADOS';
+    titleRow.getCell(1).font = { bold: true, size: 12 };
+    titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.accentBlue } };
+    titleRow.getCell(1).alignment = alignCenter;
+    sheet.mergeCells(startRow, 1, startRow, headers.length);
+    titleRow.eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
+
+    startRow += 1;
+
     // Header row
     const headerRow = sheet.getRow(startRow);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
-        cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        setCellHeaderStyle(cell, { fill: COLORS.tableHeader });
     });
 
     // Data rows
@@ -285,19 +352,17 @@ function addCensusRow(
     values.forEach((value, idx) => {
         const cell = row.getCell(idx + 1);
         cell.value = value;
-        cell.alignment = { vertical: 'middle', wrapText: true };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        setDataCellBorder(cell);
+
+        if (idx <= 1 || idx === 5 || idx === 8 || idx === 9 || (idx >= 10 && idx <= 13)) {
+            cell.alignment = { ...cell.alignment, horizontal: 'center' } as ExcelJS.Alignment;
+        }
 
         // Color blocked rows or UPC
         if (p.isBlocked) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8CBAD' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.blocked } };
         } else if (p.isUPC) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2EFDA' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.upc } };
         }
     });
 
@@ -325,23 +390,25 @@ function addCensusRow(
 function addDischargesTable(sheet: ExcelJS.Worksheet, discharges: DischargeData[], startRow: number): number {
     const headers = ['ALTAS', 'PACIENTE', 'RUT', 'EDAD', 'DIAGNÓSTICO', 'ESPECIALIDAD', 'DESTINO'];
 
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'ALTAS DEL DÍA';
+    titleRow.getCell(1).font = { bold: true, size: 11 };
+    titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.accentOrange } };
+    titleRow.getCell(1).alignment = alignCenter;
+    sheet.mergeCells(startRow, 1, startRow, headers.length);
+    titleRow.eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
+
     // Header row
-    const headerRow = sheet.getRow(startRow);
+    const headerRow = sheet.getRow(startRow + 1);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
-        cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4B084' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        setCellHeaderStyle(cell, { fill: COLORS.accentOrange });
     });
 
-    let currentRow = startRow + 1;
+    let currentRow = startRow + 2;
     if (discharges.length === 0) {
         const row = sheet.getRow(currentRow);
         row.getCell(1).value = 'Sin Altas';
@@ -365,12 +432,7 @@ function addDischargesTable(sheet: ExcelJS.Worksheet, discharges: DischargeData[
         values.forEach((value, idx) => {
             const cell = row.getCell(idx + 1);
             cell.value = value;
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
+            setDataCellBorder(cell);
         });
 
         currentRow++;
@@ -386,23 +448,25 @@ function addDischargesTable(sheet: ExcelJS.Worksheet, discharges: DischargeData[
 function addTransfersTable(sheet: ExcelJS.Worksheet, transfers: TransferData[], startRow: number): number {
     const headers = ['TRASLADOS', 'PACIENTE', 'RUT', 'EDAD', 'DIAGNÓSTICO', 'ESPECIALIDAD', 'DESTINO'];
 
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'TRASLADOS';
+    titleRow.getCell(1).font = { bold: true, size: 11 };
+    titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.accentLightBlue } };
+    titleRow.getCell(1).alignment = alignCenter;
+    sheet.mergeCells(startRow, 1, startRow, headers.length);
+    titleRow.eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
+
     // Header row
-    const headerRow = sheet.getRow(startRow);
+    const headerRow = sheet.getRow(startRow + 1);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
-        cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        setCellHeaderStyle(cell, { fill: COLORS.accentLightBlue });
     });
 
-    let currentRow = startRow + 1;
+    let currentRow = startRow + 2;
     if (transfers.length === 0) {
         const row = sheet.getRow(currentRow);
         row.getCell(1).value = 'Sin Traslados';
@@ -426,12 +490,7 @@ function addTransfersTable(sheet: ExcelJS.Worksheet, transfers: TransferData[], 
         values.forEach((value, idx) => {
             const cell = row.getCell(idx + 1);
             cell.value = value;
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
+            setDataCellBorder(cell);
         });
 
         currentRow++;
@@ -447,23 +506,25 @@ function addTransfersTable(sheet: ExcelJS.Worksheet, transfers: TransferData[], 
 function addCMATable(sheet: ExcelJS.Worksheet, cma: CMAData[], startRow: number): number {
     const headers = ['HOSPITALIZACIÓN DIURNA', 'PACIENTE', 'RUT', 'EDAD', 'DIAGNÓSTICO', 'ESPECIALIDAD', 'SERVICIO'];
 
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'HOSPITALIZACIÓN DIURNA (CMA)';
+    titleRow.getCell(1).font = { bold: true, size: 11 };
+    titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLORS.accentPink } };
+    titleRow.getCell(1).alignment = alignCenter;
+    sheet.mergeCells(startRow, 1, startRow, headers.length);
+    titleRow.eachCell(cell => {
+        cell.border = BORDER_THIN;
+    });
+
     // Header row
-    const headerRow = sheet.getRow(startRow);
+    const headerRow = sheet.getRow(startRow + 1);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
-        cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C7E7' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        setCellHeaderStyle(cell, { fill: COLORS.accentPink });
     });
 
-    let currentRow = startRow + 1;
+    let currentRow = startRow + 2;
     if (cma.length === 0) {
         const row = sheet.getRow(currentRow);
         row.getCell(1).value = 'Sin hospitalización diurna';
@@ -487,12 +548,7 @@ function addCMATable(sheet: ExcelJS.Worksheet, cma: CMAData[], startRow: number)
         values.forEach((value, idx) => {
             const cell = row.getCell(idx + 1);
             cell.value = value;
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
+            setDataCellBorder(cell);
         });
 
         currentRow++;
