@@ -1,6 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { errorService } from '../services/errorService';
+import { isDevEnvironment } from '../utils/env';
 
 interface Props {
     children: ReactNode;
@@ -104,7 +105,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
                         </p>
 
                         {/* Error details (collapsible in production) */}
-                        {import.meta.env.DEV && this.state.error && (
+                        {isDevEnvironment() && this.state.error && (
                             <details className="mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
                                 <summary className="cursor-pointer font-semibold text-slate-700 mb-2">
                                     Detalles técnicos (solo visible en desarrollo)

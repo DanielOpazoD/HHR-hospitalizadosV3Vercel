@@ -2,6 +2,7 @@
  * Centralized Error Logging Service
  * Handles error tracking, logging, and reporting
  */
+import { isDevEnvironment } from '../utils/env';
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
@@ -97,7 +98,7 @@ class ErrorService {
         }
 
         // Log to console in development
-        if (import.meta.env.DEV) {
+        if (isDevEnvironment()) {
             console.error('[ErrorService]', errorLog);
         }
 
