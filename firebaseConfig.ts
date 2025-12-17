@@ -66,23 +66,30 @@ const fetchRuntimeConfig = async (): Promise<FirebaseOptions> => {
     }
 };
 
+const getViteEnv = () => (typeof import !== 'undefined' && typeof import.meta !== 'undefined')
+    ? (import.meta as any).env || {}
+    : {};
+
 const buildDevConfig = (): FirebaseOptions => {
-    const encodedKey = import.meta.env.VITE_FIREBASE_API_KEY_B64 || '';
-    const plainKey = import.meta.env.VITE_FIREBASE_API_KEY || '';
+    const env = getViteEnv();
+    const encodedKey = env.VITE_FIREBASE_API_KEY_B64 || '';
+    const plainKey = env.VITE_FIREBASE_API_KEY || '';
     const apiKey = encodedKey ? decodeBase64(encodedKey) : plainKey;
 
     return {
         apiKey,
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID
+        authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: env.VITE_FIREBASE_APP_ID
     } satisfies FirebaseOptions;
 };
 
 const loadFirebaseConfig = () => {
-    if (import.meta.env.DEV) {
+    const env = getViteEnv();
+
+    if (env.DEV) {
         return Promise.resolve(buildDevConfig());
     }
 
@@ -114,14 +121,15 @@ export const firebaseReady = (async () => {
     });
 
     // If emulators are configured, connect (kept for compatibility with existing dev setups)
-    const authEmulatorHost = import.meta.env.VITE_AUTH_EMULATOR_HOST;
-    const firestoreEmulatorHost = import.meta.env.VITE_FIRESTORE_EMULATOR_HOST;
+    const env = getViteEnv();
+    const authEmulatorHost = env.VITE_AUTH_EMULATOR_HOST;
+    const firestoreEmulatorHost = env.VITE_FIRESTORE_EMULATOR_HOST;
 
-    if (import.meta.env.DEV && authEmulatorHost) {
+    if (env.DEV && authEmulatorHost) {
         connectAuthEmulator(auth, authEmulatorHost);
     }
 
-    if (import.meta.env.DEV && firestoreEmulatorHost) {
+    if (env.DEV && firestoreEmulatorHost) {
         const [host, port] = firestoreEmulatorHost.split(':');
         connectFirestoreEmulator(db, host, Number(port));
     }

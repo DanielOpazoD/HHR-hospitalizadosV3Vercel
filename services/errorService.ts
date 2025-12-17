@@ -97,7 +97,12 @@ class ErrorService {
         }
 
         // Log to console in development
-        if (import.meta.env.DEV) {
+        const isDev = typeof import !== 'undefined' &&
+            typeof import.meta !== 'undefined' &&
+            typeof import.meta.env !== 'undefined' &&
+            Boolean(import.meta.env.DEV);
+
+        if (isDev) {
             console.error('[ErrorService]', errorLog);
         }
 
