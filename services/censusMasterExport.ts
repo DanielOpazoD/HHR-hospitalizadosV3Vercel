@@ -5,7 +5,6 @@
  */
 
 import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
 import { DailyRecord, PatientData, DischargeData, TransferData, CMAData } from '../types';
 import { BEDS, MONTH_NAMES } from '../constants';
 import { getMonthRecordsFromFirestore } from './firestoreService';
@@ -24,41 +23,50 @@ import { calculateStats, CensusStatistics } from './calculations/statsCalculator
  * @param selectedDay - Day of the month to use as the limit (e.g., 10 means include days 1-10)
  */
 export const generateCensusMasterExcel = async (year: number, month: number, selectedDay: number): Promise<void> => {
-    // Build the limit date string from the selected day
+    const monthRecords = await getMonthRecordsUpToDay(year, month, selectedDay);
+    const workbook = buildCensusMasterWorkbook(monthRecords);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    const filename = `Censo_Maestro_${MONTH_NAMES[month]}_${year}.xlsx`;
+    const { saveAs } = await import('file-saver');
+    saveAs(blob, filename);
+};
+
+export const buildCensusMasterWorkbook = (monthRecords: DailyRecord[]) => {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Hospital Hanga Roa';
+    workbook.created = new Date();
+
+    for (const record of monthRecords) {
+        createDaySheet(workbook, record);
+    }
+
+    return workbook;
+};
+
+export const buildCensusMasterBuffer = async (year: number, month: number, selectedDay: number) => {
+    const monthRecords = await getMonthRecordsUpToDay(year, month, selectedDay);
+    const workbook = buildCensusMasterWorkbook(monthRecords);
+    return workbook.xlsx.writeBuffer();
+};
+
+const getMonthRecordsUpToDay = async (year: number, month: number, selectedDay: number): Promise<DailyRecord[]> => {
     const limitDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
 
-    // Fetch ALL records for the month directly from Firestore
-    console.log(`📊 Cargando datos del mes ${MONTH_NAMES[month]} ${year} desde Firestore...`);
     const allMonthRecords = await getMonthRecordsFromFirestore(year, month);
-
-    // Filter only up to the selected day
     const monthRecords = allMonthRecords
         .filter(record => record.date <= limitDateStr)
         .sort((a, b) => a.date.localeCompare(b.date));
 
     if (monthRecords.length === 0) {
-        alert(`No hay datos para ${MONTH_NAMES[month]} ${year}`);
-        return;
+        throw new Error(`No hay datos para ${MONTH_NAMES[month]} ${year}`);
     }
 
-    console.log(`✅ Se encontraron ${monthRecords.length} días con datos`);
-
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Hospital Hanga Roa';
-    workbook.created = new Date();
-
-    // Create a sheet for each day
-    for (const record of monthRecords) {
-        createDaySheet(workbook, record);
-    }
-
-    // Generate and download
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    });
-    const filename = `Censo_Maestro_${MONTH_NAMES[month]}_${year}.xlsx`;
-    saveAs(blob, filename);
+    return monthRecords;
 };
 
 // ============================================================================
