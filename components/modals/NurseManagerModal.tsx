@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, X, Plus, Trash2, Cloud, AlertCircle } from 'lucide-react';
+import { Users, X, Plus, Trash2, Cloud, AlertCircle, Pencil, Check } from 'lucide-react';
 import * as DataService from '../../services/dataService';
 import { saveNurseCatalogToFirestore } from '../../services/firestoreService';
 
@@ -14,6 +14,8 @@ export const NurseManagerModal: React.FC<NurseManagerModalProps> = ({ isOpen, on
   const [newNurseName, setNewNurseName] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   if (!isOpen) return null;
 
@@ -46,6 +48,28 @@ export const NurseManagerModal: React.FC<NurseManagerModalProps> = ({ isOpen, on
   const handleRemove = async (name: string) => {
     const updated = nursesList.filter(n => n !== name);
     await saveNurses(updated);
+  };
+
+  const handleStartEdit = (name: string) => {
+    setEditingName(name);
+    setEditValue(name);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingName) return;
+
+    const trimmed = editValue.trim();
+    if (!trimmed) return;
+
+    const updated = nursesList.map(n => (n === editingName ? trimmed : n));
+    await saveNurses(updated);
+    setEditingName(null);
+    setEditValue('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingName(null);
+    setEditValue('');
   };
 
   return (
@@ -89,15 +113,61 @@ export const NurseManagerModal: React.FC<NurseManagerModalProps> = ({ isOpen, on
 
           <div className="space-y-2">
             {nursesList.map(nurse => (
-              <div key={nurse} className="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100 group">
-                <span className="text-sm font-medium text-slate-700">{nurse}</span>
-                <button
-                  onClick={() => handleRemove(nurse)}
-                  className="text-slate-300 hover:text-red-500 transition-colors"
-                  disabled={syncing}
-                >
-                  <Trash2 size={16} />
-                </button>
+              <div key={nurse} className="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-100 gap-2 group">
+                {editingName === nurse ? (
+                  <>
+                    <input
+                      className="flex-1 p-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-medical-500"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleUpdate();
+                        if (e.key === 'Escape') handleCancelEdit();
+                      }}
+                      disabled={syncing}
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        onClick={handleUpdate}
+                        className="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-60"
+                        disabled={syncing}
+                        title="Guardar cambios"
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="p-1.5 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition-colors"
+                        disabled={syncing}
+                        title="Cancelar"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm font-medium text-slate-700 flex-1">{nurse}</span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleStartEdit(nurse)}
+                        className="text-slate-400 hover:text-medical-600 transition-colors"
+                        disabled={syncing}
+                        title="Editar nombre"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleRemove(nurse)}
+                        className="text-slate-300 hover:text-red-500 transition-colors"
+                        disabled={syncing}
+                        title="Eliminar"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
 

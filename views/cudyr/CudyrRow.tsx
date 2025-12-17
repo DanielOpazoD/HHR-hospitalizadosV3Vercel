@@ -77,7 +77,7 @@ export const CudyrRow: React.FC<CudyrRowProps> = ({ bed, patient, onScoreChange,
     return (
         <tr className={clsx("border-b border-slate-300 hover:bg-slate-100 transition-colors", isUTI ? "bg-yellow-50/60" : "bg-white")}>
             <td className="border-r border-slate-300 p-1 text-center font-bold text-slate-700">{bed.name}</td>
-            <td className="border-r border-slate-300 p-1 truncate font-medium text-slate-700 print:whitespace-nowrap print:overflow-visible" title={patient.patientName}>
+            <td className="border-r border-slate-300 p-1 truncate font-medium text-slate-700 w-[8.4rem] print:w-auto print:whitespace-nowrap print:overflow-visible" title={patient.patientName}>
                 {/* Show name on screen, RUT when printing */}
                 <span className="print:hidden">{patient.patientName}</span>
                 <span className="hidden print:inline text-[10px]">{patient.rut || '-'}</span>

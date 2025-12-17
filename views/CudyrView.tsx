@@ -112,7 +112,7 @@ export const CudyrView: React.FC<CudyrViewProps> = ({ readOnly = false }) => {
                             <tr className="text-center">
                                 {/* Fixed */}
                                 <th className="border border-slate-300 p-1 w-10 bg-slate-50 align-middle print:w-auto">CAMA</th>
-                                <th className="border border-slate-300 p-1 w-28 bg-slate-50 align-middle print:w-auto print:max-w-[80px]">
+                                <th className="border border-slate-300 p-1 w-[8.4rem] bg-slate-50 align-middle print:w-auto print:max-w-[96px]">
                                     <span className="print:hidden">NOMBRE</span>
                                     <span className="hidden print:inline">RUT</span>
                                 </th>

@@ -241,7 +241,6 @@ function App() {
                 setModule={setCurrentModule}
                 censusViewMode={censusViewMode}
                 setCensusViewMode={setCensusViewMode}
-                onPrint={() => window.print()}
                 onOpenBedManager={() => setShowBedManager(true)}
                 onExportJSON={handleExportJSON}
                 onExportCSV={handleExportCSV}
@@ -263,7 +262,6 @@ function App() {
                 daysInMonth={daysInMonth}
                 existingDaysInMonth={existingDaysInMonth}
                 onOpenBedManager={() => setShowBedManager(true)}
-                onPrint={() => window.print()}
                 onExportExcel={currentModule === 'CENSUS'
                   ? () => generateCensusMasterExcel(selectedYear, selectedMonth, selectedDay)
                   : undefined}
