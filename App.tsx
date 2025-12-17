@@ -6,7 +6,7 @@ import { Navbar, DateStrip, SettingsModal, TestAgent, SyncWatcher, DemoModePanel
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ModuleType } from './components';
 import { canEditModule } from './utils/permissions';
-import { generateCensusMasterExcel, triggerCensusEmail, formatDate } from './services';
+import { generateCensusMasterExcel, triggerCensusEmail, formatDate, getMonthRecordsFromFirestore } from './services';
 import { CensusEmailConfigModal } from './components/CensusEmailConfigModal';
 import { buildCensusEmailBody, CENSUS_DEFAULT_RECIPIENTS } from './constants/email';
 
@@ -137,9 +137,25 @@ function App() {
 
     try {
       const finalMessage = emailMessage?.trim() ? emailMessage : buildCensusEmailBody(currentDateString, nurseSignature);
+      const monthRecords = await getMonthRecordsFromFirestore(selectedYear, selectedMonth);
+      const limitDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+
+      const filteredRecords = monthRecords
+        .filter(r => r.date <= limitDate)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      if (!filteredRecords.some(r => r.date === currentDateString) && record) {
+        filteredRecords.push(record);
+      }
+
+      if (filteredRecords.length === 0) {
+        throw new Error('No hay registros del mes para generar el Excel maestro.');
+      }
+
+      filteredRecords.sort((a, b) => a.date.localeCompare(b.date));
       await triggerCensusEmail({
         date: currentDateString,
-        record,
+        records: filteredRecords,
         recipients: resolvedRecipients,
         nursesSignature: nurseSignature || undefined,
         body: finalMessage,

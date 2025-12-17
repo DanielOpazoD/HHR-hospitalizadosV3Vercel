@@ -5,6 +5,7 @@ import { getTodayISO } from '../utils/dateUtils';
 const run = async () => {
     const today = getTodayISO();
     const demoRecord = generateDemoRecord(today);
+    const records = [demoRecord];
 
     const event = {
         httpMethod: 'POST',
@@ -14,7 +15,7 @@ const run = async () => {
         },
         body: JSON.stringify({
             date: today,
-            record: demoRecord,
+            records,
             recipients: process.env.TEST_CENSUS_EMAIL ? [process.env.TEST_CENSUS_EMAIL] : undefined,
             nursesSignature: `Script local - ${formatDateDDMMYYYY(today)}`
         })
