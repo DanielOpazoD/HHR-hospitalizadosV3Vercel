@@ -370,7 +370,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
                             onClick={handleSendWhatsApp}
                             disabled={whatsappSending || whatsappSent || !!record.medicalSignature}
                             className={clsx(
-                                "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors",
+                                "hidden flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors",
                                 (whatsappSent || record.medicalSignature)
                                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                                     : "bg-green-500 text-white hover:bg-green-600"
@@ -387,15 +387,15 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
                         </button>
                         <button
                             onClick={sendWhatsAppReportViaLink}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                             title="Abrir WhatsApp con mensaje prellenado vía link"
                         >
                             <Send size={16} />
-                            Enviar por WhatsApp (Link)
+                            Enviar por WhatsApp
                         </button>
                         <button
                             onClick={handleShareLink}
-                            className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-bold"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-xs font-semibold"
                             title="Generar link para firma del médico"
                         >
                             <Share2 size={16} />
