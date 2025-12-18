@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Database, FileSpreadsheet, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Cloud, RefreshCw, AlertTriangle, Database, FileSpreadsheet, Send, Printer } from 'lucide-react';
 import clsx from 'clsx';
 import { MONTH_NAMES } from '../constants';
 import { useDemoMode } from '../context/DemoModeContext';
@@ -14,6 +14,7 @@ interface DateStripProps {
     currentDateString: string;
     daysInMonth: number;
     existingDaysInMonth: number[];
+    onPrintPDF?: () => void;
     onOpenBedManager?: () => void;
     onExportExcel?: () => void;
     onConfigureEmail?: () => void;
@@ -31,6 +32,7 @@ export const DateStrip: React.FC<DateStripProps> = ({
     currentDateString,
     daysInMonth,
     existingDaysInMonth,
+    onPrintPDF,
     onOpenBedManager,
     onExportExcel,
     onConfigureEmail,
@@ -75,6 +77,18 @@ export const DateStrip: React.FC<DateStripProps> = ({
         <div className="bg-white border-b border-slate-200 shadow-sm sticky top-[60px] z-40 print:hidden">
             <div className="max-w-screen-2xl mx-auto px-4 py-1.5">
                 <div className="flex items-center gap-3">
+
+                    {/* Print PDF Button */}
+                    {onPrintPDF && (
+                        <button
+                            onClick={onPrintPDF}
+                            className="flex items-center gap-1 px-2 py-1 bg-slate-800 text-white text-xs font-bold rounded hover:bg-slate-900 transition-colors shadow-sm"
+                            title="Imprimir vista en PDF"
+                        >
+                            <Printer size={14} />
+                            PDF
+                        </button>
+                    )}
 
                     {/* Excel Export Button */}
                     {onExportExcel && (
