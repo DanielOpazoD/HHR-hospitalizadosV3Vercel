@@ -198,16 +198,7 @@ function addSummarySection(
         cell.alignment = { horizontal: 'center' };
     });
 
-    // Row 4: Capacity summary
-    const capacityRow = sheet.getRow(startRow + 3);
-    capacityRow.getCell(1).value = `Capacidad Servicio: ${stats.serviceCapacity}`;
-    capacityRow.getCell(2).value = `Disponibles: ${stats.availableCapacity}`;
-    capacityRow.getCell(3).value = `Total Pacientes: ${stats.totalHospitalized}`;
-    capacityRow.eachCell(cell => {
-        cell.font = { size: 9 };
-    });
-
-    return startRow + 4;
+    return startRow + 3;
 }
 
 // ============================================================================
@@ -263,6 +254,7 @@ function addCensusRow(
     const row = sheet.getRow(rowNumber);
     const isBlocked = Boolean(patient?.isBlocked);
     const isFree = !patient;
+    const blockedDetail = patient?.blockedReason?.trim();
 
     const values = [
         index,
@@ -296,6 +288,22 @@ function addCensusRow(
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBE5D6' } };
         }
     });
+
+    if (isFree || isBlocked) {
+        const label = isBlocked
+            ? `Bloqueada${blockedDetail ? ` - ${blockedDetail}` : ''}`
+            : 'Libre';
+
+        row.getCell(4).value = label;
+        row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        row.getCell(4).font = { bold: true };
+        row.getCell(4).border = BORDER_THIN;
+        if (isBlocked) {
+            row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBE5D6' } };
+        }
+
+        sheet.mergeCells(rowNumber, 4, rowNumber, 15);
+    }
 
     return rowNumber + 1;
 }
