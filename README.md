@@ -446,3 +446,11 @@ Cobertura actual: ~35% (28 tests)
 - **Tailwind CSS** (estilos)
 - **Vitest** (testing)
 - **Lucide React** (iconos)
+
+## 📡 Despliegue de WhatsApp (Netlify + Railway)
+
+Consulta `docs/whatsapp-deployment.md` para el paso a paso de configuración:
+- Cómo obtener la URL pública del bot en Railway y probar `/health` y `/send-message`.
+- Variables de entorno necesarias (`VITE_WHATSAPP_BOT_URL`, `WHATSAPP_BOT_URL`, `WHATSAPP_BOT_SERVER`).
+- Uso del proxy serverless de Netlify (`/.netlify/functions/whatsapp-proxy`) para evitar CORS y ocultar la URL del bot.
+- Checks rápidos para verificar que el botón **Enviar por WhatsApp** funciona tras el despliegue.
