@@ -130,7 +130,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
         if (!record) return;
         setWhatsappSending(true);
         try {
-            // Get WhatsApp config and template
+            // Get WhatsApp config and template (Railway bot)
             const config = await getWhatsAppConfig();
             const templates = await getMessageTemplates();
 
@@ -157,6 +157,32 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     const title = isMedical
         ? 'Entrega Turno Médicos'
         : `Entrega Turno Enfermería - ${selectedShift === 'day' ? 'Día' : 'Noche'} `;
+
+    const sendWhatsAppReportViaLink = useCallback(() => {
+        if (!record) return;
+
+        // Build a lightweight, non-sensitive message that only includes metadata and the report link
+        const reportUrl = window.location.href;
+        const formattedDateTime = new Date().toLocaleString('es-CL', {
+            dateStyle: 'short',
+            timeStyle: 'short'
+        });
+
+        const message = [
+            title.trim(),
+            `Fecha y hora: ${formattedDateTime}`,
+            `Reporte: ${reportUrl}`
+        ].join('\n');
+
+        const encodedMessage = encodeURIComponent(message);
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const baseWhatsAppUrl = isMobileDevice
+            ? 'https://wa.me/?text='
+            : 'https://web.whatsapp.com/send?text=';
+
+        // Open WhatsApp with the prefilled text (no auto-send)
+        window.open(`${baseWhatsAppUrl}${encodedMessage}`, '_blank', 'noopener,noreferrer');
+    }, [record, title]);
     const Icon = isMedical ? Stethoscope : MessageSquare;
     const headerColor = isMedical ? 'text-purple-600' : 'text-medical-600';
     const tableHeaderClass = isMedical
@@ -305,7 +331,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
 
                 {/* Medical Action Buttons */}
                 {isMedical && !readOnly && (
-                    <div className="flex items-center gap-2 md:ml-auto">
+                    <div className="flex items-center gap-3 md:ml-auto">
                         <button
                             onClick={handleSendWhatsApp}
                             disabled={whatsappSending || whatsappSent || !!record.medicalSignature}
@@ -315,15 +341,23 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
                                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                                     : "bg-green-500 text-white hover:bg-green-600"
                             )}
-                            title="Enviar entrega por WhatsApp"
+                            title="Enviar entrega por WhatsApp (Railway)"
                         >
                             {whatsappSending ? (
                                 <><RefreshCw size={16} className="animate-spin" /> Enviando...</>
                             ) : whatsappSent ? (
-                                <><CheckCircle size={16} /> Enviado</>
+                                <><CheckCircle size={16} /> Enviado (Railway)</>
                             ) : (
-                                <><Send size={16} /> Enviar WhatsApp</>
+                                <><Send size={16} /> Enviar por WhatsApp (Railway)</>
                             )}
+                        </button>
+                        <button
+                            onClick={sendWhatsAppReportViaLink}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            title="Abrir WhatsApp con mensaje prellenado vía link"
+                        >
+                            <Send size={16} />
+                            Enviar por WhatsApp (Link)
                         </button>
                         <button
                             onClick={handleShareLink}
