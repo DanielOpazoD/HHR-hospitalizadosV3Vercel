@@ -27,7 +27,13 @@ const buildPatient = (bedId: string, patientName: string): PatientData => ({
 const buildRecord = (date: string, patientName: string): DailyRecord => ({
     date,
     beds: {
-        [BEDS[0].id]: buildPatient(BEDS[0].id, patientName)
+        [BEDS[0].id]: buildPatient(BEDS[0].id, patientName),
+        [BEDS[1].id]: {
+            ...buildPatient(BEDS[1].id, ''),
+            patientName: '',
+            rut: '',
+            age: ''
+        }
     },
     discharges: [],
     transfers: [],
@@ -60,6 +66,9 @@ describe('census master workbook builder', () => {
         expect(firstSheet.getCell(`C${censusFirstDataRow}`).value).toBe('UTI');
         expect(firstSheet.getCell(`F${censusFirstDataRow}`).value).toBe('30a');
         expect(firstSheet.getCell(`I${censusFirstDataRow}`).value).toBe('01-05-2024');
+
+        const freeRow = censusFirstDataRow + 1;
+        expect(firstSheet.getCell(`D${freeRow}`).value).toBe('Libre');
 
         const dischargeTitleRow = censusHeaderRow + BEDS.length + 2;
         const dischargeEmptyRow = dischargeTitleRow + 2;

@@ -16,6 +16,12 @@ const HEADER_FILL: ExcelJS.Fill = {
     fgColor: { argb: 'FFF5F5F5' }
 };
 
+const FREE_FILL: ExcelJS.Fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFF7F7F7' }
+};
+
 const TITLE_STYLE = { bold: true, size: 11 } satisfies Partial<ExcelJS.Font>;
 
 /**
@@ -252,8 +258,9 @@ function addCensusRow(
     locationOverride?: string
 ): number {
     const row = sheet.getRow(rowNumber);
+    const patientName = patient?.patientName?.trim();
     const isBlocked = Boolean(patient?.isBlocked);
-    const isFree = !patient;
+    const isFree = !isBlocked && (!patient || !patientName);
     const blockedDetail = patient?.blockedReason?.trim();
 
     const values = [
@@ -298,9 +305,9 @@ function addCensusRow(
         row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         row.getCell(4).font = { bold: true };
         row.getCell(4).border = BORDER_THIN;
-        if (isBlocked) {
-            row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBE5D6' } };
-        }
+        row.getCell(4).fill = isBlocked
+            ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBE5D6' } }
+            : FREE_FILL;
 
         sheet.mergeCells(rowNumber, 4, rowNumber, 15);
     }
