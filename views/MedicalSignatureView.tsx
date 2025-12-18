@@ -30,22 +30,22 @@ export const MedicalSignatureView: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-32">
+        <div className="min-h-screen bg-slate-50 pb-28">
             {/* Read Only View */}
             <div className="pointer-events-none select-none">
                 <HandoffView type="medical" readOnly={true} />
             </div>
 
             {/* Signature Footer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] p-6 z-50 print:hidden">
-                <div className="max-w-3xl mx-auto">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] p-4 z-50 print:hidden">
+                <div className="max-w-3xl mx-auto text-sm sm:text-base">
                     {isSigned ? (
-                        <div className="flex items-center gap-3 bg-green-50 p-3 rounded-lg border border-green-200">
+                        <div className="flex items-center gap-3 bg-green-50 p-2.5 rounded-lg border border-green-200">
                             <div className="bg-green-100 p-1.5 rounded-full text-green-600">
                                 <CheckCircle size={20} />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-green-800">Entrega Recibida y Firmada</h3>
+                                <h3 className="text-xs sm:text-sm font-bold text-green-800">Entrega Recibida y Firmada</h3>
                                 <p className="text-green-700 text-xs">
                                     Firmado por <strong>{signatureData.doctorName}</strong> el {new Date(signatureData.signedAt).toLocaleString()}
                                 </p>
@@ -53,28 +53,28 @@ export const MedicalSignatureView: React.FC = () => {
                         </div>
                     ) : (
                         <>
-                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <h3 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
                                 <PenTool className="text-purple-600" />
                                 Recepción de Turno Médico
                             </h3>
 
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <input
                                     type="text"
                                     placeholder="Nombre y Apellido del Médico"
                                     value={doctorName}
                                     onChange={(e) => setDoctorName(e.target.value)}
-                                    className="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-lg"
+                                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-base"
                                 />
                                 <button
                                     onClick={handleSign}
                                     disabled={!doctorName.trim()}
-                                    className="bg-purple-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-lg shadow-md whitespace-nowrap"
+                                    className="bg-purple-600 text-white font-semibold py-2.5 px-6 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-base shadow-md whitespace-nowrap"
                                 >
                                     Firmar y Recibir
                                 </button>
                             </div>
-                            <p className="text-sm text-slate-500 mt-2">
+                            <p className="text-xs sm:text-sm text-slate-500 mt-2">
                                 Al firmar, certifica que ha leído y recibido la entrega de turno conforme.
                             </p>
                         </>
