@@ -198,6 +198,9 @@ export const initializeDay = async (
                     // Deep copy to prevent reference issues
                     initialBeds[bed.id] = clonePatient(prevPatient);
 
+                    // Reset daily CUDYR scoring while keeping patient assignment
+                    initialBeds[bed.id].cudyr = undefined;
+
                     // Inherit nursing shift notes from previous night to new day
                     // Previous night's notes become the starting point for the new day
                     const prevNightNote = prevPatient.handoffNoteNightShift || prevPatient.handoffNote || '';

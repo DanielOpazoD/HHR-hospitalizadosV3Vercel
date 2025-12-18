@@ -14,8 +14,8 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ stats, discharges = []
     const deaths = discharges.filter(d => d.status === 'Fallecido').length;
     const liveDischarges = discharges.filter(d => d.status === 'Vivo').length;
     const totalTransfers = transfers.length;
-    // Capacidad servicio = camas ocupadas + libres - bloqueadas
-    const capacidadServicio = stats.occupiedBeds + stats.availableCapacity - stats.blockedBeds;
+    // Capacidad servicio = capacidad total - bloqueadas (solo camas habilitadas)
+    const capacidadServicio = stats.serviceCapacity - stats.blockedBeds;
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-slate-100 h-full flex-shrink-0">
