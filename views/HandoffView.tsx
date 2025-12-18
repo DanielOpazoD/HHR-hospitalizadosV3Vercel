@@ -15,7 +15,26 @@ import { HandoffStaffSelector } from './handoff/HandoffStaffSelector';
 import { CudyrView } from './CudyrView';
 
 import { useNotification } from '../context/NotificationContext';
-import { getWhatsAppConfig, getMessageTemplates } from '../services/integrations/whatsapp/whatsappService';
+import { getWhatsAppConfig, getMessageTemplates, formatHandoffMessage } from '../services/integrations/whatsapp/whatsappService';
+import { getPreviousDay } from '../services/repositories/DailyRecordRepository';
+
+const HANDOFF_MESSAGE_TEMPLATE = `🏥 Hospital Hanga Roa
+📋 Entrega de Turno Médico
+
+📅 Fecha: {{date}}
+👨‍⚕️ Entregado por: {{signedBy}}
+🕐 Firmado: {{signedAt}}
+
+📊 Resumen:
+• Hospitalizados: {{hospitalized}} pacientes
+• Camas libres: {{freeBeds}}
+• Nuevos ingresos: {{newAdmissions}}
+• Altas: {{discharges}}
+
+🔗 Ver entrega completa:
+{{handoffUrl}}
+
+- Enviado automáticamente por Sistema HHR`;
 
 interface HandoffViewProps {
     type?: 'nursing' | 'medical';
@@ -161,18 +180,33 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     const sendWhatsAppReportViaLink = useCallback(() => {
         if (!record) return;
 
-        // Build a lightweight, non-sensitive message that only includes metadata and the report link
-        const reportUrl = window.location.href;
-        const formattedDateTime = new Date().toLocaleString('es-CL', {
-            dateStyle: 'short',
-            timeStyle: 'short'
-        });
+        const activeExtras = record.activeExtraBeds || [];
+        const visibleBeds = BEDS.filter(bed => !bed.isExtra || activeExtras.includes(bed.id));
+        const hospitalized = visibleBeds.filter(bed => record.beds[bed.id].patientName && !record.beds[bed.id].isBlocked).length;
+        const blockedBeds = visibleBeds.filter(bed => record.beds[bed.id].isBlocked).length;
+        const freeBeds = visibleBeds.length - hospitalized - blockedBeds;
 
-        const message = [
-            title.trim(),
-            `Fecha y hora: ${formattedDateTime}`,
-            `Reporte: ${reportUrl}`
-        ].join('\n');
+        const [year, month, day] = record.date.split('-');
+        const formattedDate = `${day}-${month}-${year}`;
+        const handoffUrl = `${window.location.origin}?mode=signature&date=${record.date}`;
+        const signedAt = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+        let doctorName = record.medicalHandoffDoctor || '';
+        if (!doctorName) {
+            const previousRecord = getPreviousDay(record.date);
+            doctorName = previousRecord?.medicalHandoffDoctor || 'Sin especificar';
+        }
+
+        const message = formatHandoffMessage(HANDOFF_MESSAGE_TEMPLATE, {
+            date: formattedDate,
+            signedBy: doctorName || 'Sin especificar',
+            signedAt,
+            hospitalized,
+            freeBeds,
+            newAdmissions: 0,
+            discharges: 0,
+            handoffUrl
+        });
 
         const encodedMessage = encodeURIComponent(message);
         const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -182,7 +216,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
 
         // Open WhatsApp with the prefilled text (no auto-send)
         window.open(`${baseWhatsAppUrl}${encodedMessage}`, '_blank', 'noopener,noreferrer');
-    }, [record, title]);
+    }, [record]);
     const Icon = isMedical ? Stethoscope : MessageSquare;
     const headerColor = isMedical ? 'text-purple-600' : 'text-medical-600';
     const tableHeaderClass = isMedical
