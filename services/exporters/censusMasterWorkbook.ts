@@ -3,6 +3,27 @@ import { DailyRecord, PatientData, DischargeData, TransferData, CMAData } from '
 import { BEDS, MONTH_NAMES } from '../../constants';
 import { calculateStats, CensusStatistics } from '../calculations/statsCalculator';
 
+const BORDER_THIN: ExcelJS.Border = {
+    top: { style: 'thin' },
+    left: { style: 'thin' },
+    bottom: { style: 'thin' },
+    right: { style: 'thin' }
+};
+
+const HEADER_FILL: ExcelJS.Fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFF5F5F5' }
+};
+
+const FREE_FILL: ExcelJS.Fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFF7F7F7' }
+};
+
+const TITLE_STYLE = { bold: true, size: 11 } satisfies Partial<ExcelJS.Font>;
+
 /**
  * Build the formatted "Censo Maestro" workbook from an array of daily records.
  * The records should contain one entry per day of the month (up to the selected day),
@@ -87,26 +108,13 @@ function createDaySheet(workbook: ExcelJS.Workbook, record: DailyRecord): void {
     // 6. CMA Table (always show, even if empty)
     addCMATable(sheet, record.cma || [], currentRow);
 
-    // Auto-fit columns (approximate)
-    sheet.columns.forEach(column => {
-        column.width = 15;
+    // Column widths tailored for a compact, legible layout
+    const widths = [4, 10, 9, 24, 16, 8, 28, 16, 12, 12, 7, 7, 7, 7, 18];
+    widths.forEach((width, idx) => {
+        if (sheet.columns[idx]) {
+            sheet.columns[idx].width = width;
+        }
     });
-    // Column widths: 1=#, 2=Cama, 3=Tipo, 4=Paciente, 5=RUT, 6=Edad, 7=Dx, 8=Esp, 9=F.Ing, 10=Estado, 11=Braz, 12=C.QX, 13=UPC, 14=Post, 15=Disp
-    if (sheet.columns[0]) sheet.columns[0].width = 4;   // #
-    if (sheet.columns[1]) sheet.columns[1].width = 10;  // Cama
-    if (sheet.columns[2]) sheet.columns[2].width = 7;   // Tipo
-    if (sheet.columns[3]) sheet.columns[3].width = 22;  // Paciente
-    if (sheet.columns[4]) sheet.columns[4].width = 14;  // RUT
-    if (sheet.columns[5]) sheet.columns[5].width = 6;   // Edad
-    if (sheet.columns[6]) sheet.columns[6].width = 28;  // Diagnóstico
-    if (sheet.columns[7]) sheet.columns[7].width = 14;  // Especialidad
-    if (sheet.columns[8]) sheet.columns[8].width = 10;  // F. Ingreso
-    if (sheet.columns[9]) sheet.columns[9].width = 10;  // Estado
-    if (sheet.columns[10]) sheet.columns[10].width = 5; // Braz
-    if (sheet.columns[11]) sheet.columns[11].width = 5; // C.QX
-    if (sheet.columns[12]) sheet.columns[12].width = 5; // UPC
-    if (sheet.columns[13]) sheet.columns[13].width = 5; // Post
-    if (sheet.columns[14]) sheet.columns[14].width = 18; // Disp
 }
 
 // ============================================================================
@@ -196,16 +204,7 @@ function addSummarySection(
         cell.alignment = { horizontal: 'center' };
     });
 
-    // Row 4: Capacity summary
-    const capacityRow = sheet.getRow(startRow + 3);
-    capacityRow.getCell(1).value = `Capacidad Servicio: ${stats.serviceCapacity}`;
-    capacityRow.getCell(2).value = `Disponibles: ${stats.availableCapacity}`;
-    capacityRow.getCell(3).value = `Total Pacientes: ${stats.totalHospitalized}`;
-    capacityRow.eachCell(cell => {
-        cell.font = { size: 9 };
-    });
-
-    return startRow + 4;
+    return startRow + 3;
 }
 
 // ============================================================================
@@ -213,41 +212,36 @@ function addSummarySection(
 // ============================================================================
 
 function addCensusTable(sheet: ExcelJS.Worksheet, record: DailyRecord, startRow: number): number {
-    const headers = ['#', 'CAMA', 'TIPO', 'PACIENTE', 'RUT', 'EDAD', 'Dx', 'ESP', 'F. ING', 'ESTADO', 'BRAZ', 'C.QX', 'UPC', 'POST', 'DISPOSITIVOS'];
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'TABLA DE PACIENTES HOSPITALIZADOS';
+    titleRow.getCell(1).font = TITLE_STYLE;
+    startRow += 1;
 
-    // Header row
+    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Especialidad', 'F. Ingreso', 'Estado', 'Braz', 'C.QX', 'UPC', 'Post', 'Disp.'];
     const headerRow = sheet.getRow(startRow);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
         cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        cell.fill = HEADER_FILL;
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = BORDER_THIN;
     });
 
-    // Data rows
     let currentRow = startRow + 1;
     let index = 1;
+    const activeExtras = record.activeExtraBeds || [];
 
     BEDS.forEach(bed => {
-        const p = record.beds[bed.id];
-        if (!p) return;
+        const patient = record.beds[bed.id];
+        const shouldRenderExtra = !bed.isExtra || activeExtras.includes(bed.id) || Boolean(patient);
+        if (!shouldRenderExtra) return;
 
-        const hasData = (p.patientName && p.patientName.trim() !== '') || p.isBlocked;
-        const hasClinicalCrib = p.clinicalCrib?.patientName?.trim();
+        const hasClinicalCrib = Boolean(patient?.clinicalCrib?.patientName?.trim());
+        currentRow = addCensusRow(sheet, currentRow, index++, bed.id, bed.type, patient);
 
-        if (hasData) {
-            currentRow = addCensusRow(sheet, currentRow, index++, bed.id, bed.type, p);
-        }
-
-        if (hasClinicalCrib && p.clinicalCrib) {
-            currentRow = addCensusRow(sheet, currentRow, index++, `${bed.id}-C`, 'Cuna', p.clinicalCrib, p.location);
+        if (hasClinicalCrib && patient?.clinicalCrib) {
+            currentRow = addCensusRow(sheet, currentRow, index++, `${bed.id}-C`, 'Cuna', patient.clinicalCrib, patient.location);
         }
     });
 
@@ -260,59 +254,62 @@ function addCensusRow(
     index: number,
     bedId: string,
     bedType: string,
-    p: PatientData,
+    patient?: PatientData,
     locationOverride?: string
 ): number {
     const row = sheet.getRow(rowNumber);
+    const patientName = patient?.patientName?.trim();
+    const isBlocked = Boolean(patient?.isBlocked);
+    const isFree = !isBlocked && (!patient || !patientName);
+    const blockedDetail = patient?.blockedReason?.trim();
+
     const values = [
         index,
-        bedId,
-        bedType,
-        p.patientName || '',
-        p.rut || '',
-        p.age || '',
-        p.pathology || '',
-        p.specialty || '',
-        p.admissionDate || '',
-        p.status || '',
-        p.hasWristband ? 'SI' : 'NO',
-        p.surgicalComplication ? 'SI' : 'NO',
-        p.isUPC ? 'SI' : 'NO',
-        p.isBedridden ? 'SI' : 'NO',
-        p.devices?.join(', ') || '',
+        locationOverride ? `${bedId} (${locationOverride})` : bedId,
+        mapBedType(bedType),
+        isBlocked ? 'BLOQUEADA' : patient?.patientName || (isFree ? 'Libre' : ''),
+        patient?.rut || '',
+        formatAge(patient?.age),
+        patient?.pathology || '',
+        patient?.specialty || '',
+        formatDateDDMMYYYY(patient?.admissionDate),
+        isBlocked ? 'Bloqueada' : patient?.status || (isFree ? 'Libre' : ''),
+        patient ? (patient.hasWristband ? 'Sí' : 'No') : 'No',
+        patient ? (patient.surgicalComplication ? 'Sí' : 'No') : 'No',
+        patient ? (patient.isUPC ? 'Sí' : 'No') : 'No',
+        patient ? (patient.isBedridden ? 'Sí' : 'No') : 'No',
+        patient?.devices?.join(', ') || ''
     ];
 
     values.forEach((value, idx) => {
         const cell = row.getCell(idx + 1);
         cell.value = value;
-        cell.alignment = { vertical: 'middle', wrapText: true };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
+        cell.alignment = {
+            vertical: 'middle',
+            wrapText: true,
+            horizontal: idx <= 2 || idx >= 10 ? 'center' : 'left'
         };
+        cell.border = BORDER_THIN;
 
-        // Color blocked rows or UPC
-        if (p.isBlocked) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8CBAD' } };
-        } else if (p.isUPC) {
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2EFDA' } };
+        if (isBlocked) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBE5D6' } };
         }
     });
 
-    // Override admission date format (DD-MM-YYYY)
-    const date = p.admissionDate ? new Date(p.admissionDate) : null;
-    if (date) {
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        row.getCell(9).value = `${day}-${month}-${year}`;
-    }
+    if (isFree || isBlocked) {
+        const label = isBlocked
+            ? `Bloqueada${blockedDetail ? ` - ${blockedDetail}` : ''}`
+            : 'Libre';
 
-    // Show location override if provided (for clinical crib)
-    if (locationOverride) {
-        row.getCell(2).value = `${bedId} (${locationOverride})`;
+        row.getCell(4).value = label;
+        row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        row.getCell(4).font = { bold: true };
+        row.getCell(4).border = BORDER_THIN;
+        row.getCell(4).fill = isBlocked
+            ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBE5D6' } }
+            : FREE_FILL;
+
+        sheet.mergeCells(rowNumber, 4, rowNumber, 15);
     }
 
     return rowNumber + 1;
@@ -323,54 +320,50 @@ function addCensusRow(
 // ============================================================================
 
 function addDischargesTable(sheet: ExcelJS.Worksheet, discharges: DischargeData[], startRow: number): number {
-    const headers = ['ALTAS', 'PACIENTE', 'RUT', 'EDAD', 'DIAGNÓSTICO', 'ESPECIALIDAD', 'DESTINO'];
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'ALTAS DEL DÍA';
+    titleRow.getCell(1).font = TITLE_STYLE;
+    startRow += 1;
 
-    // Header row
+    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Estado', 'Tipo Alta'];
     const headerRow = sheet.getRow(startRow);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
         cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4B084' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        cell.fill = HEADER_FILL;
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = BORDER_THIN;
     });
 
     let currentRow = startRow + 1;
     if (discharges.length === 0) {
         const row = sheet.getRow(currentRow);
-        row.getCell(1).value = 'Sin Altas';
+        row.getCell(1).value = 'Sin altas registradas';
         row.getCell(1).font = { italic: true };
         sheet.mergeCells(currentRow, 1, currentRow, headers.length);
         return currentRow + 1;
     }
 
-    discharges.forEach(d => {
+    discharges.forEach((d, idx) => {
         const row = sheet.getRow(currentRow);
         const values = [
-            d.status || '',
+            idx + 1,
+            d.bedName || d.bedId || '',
+            d.bedType || '',
             d.patientName || '',
             d.rut || '',
-            d.age || '',
-            d.pathology || '',
-            d.specialty || '',
-            d.destination || ''
+            formatAge(d.age),
+            d.diagnosis || '',
+            d.status || '',
+            d.dischargeTypeOther || d.dischargeType || 'N/A'
         ];
 
-        values.forEach((value, idx) => {
-            const cell = row.getCell(idx + 1);
+        values.forEach((value, cellIdx) => {
+            const cell = row.getCell(cellIdx + 1);
             cell.value = value;
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
+            cell.alignment = { vertical: 'middle', wrapText: true, horizontal: cellIdx <= 2 ? 'center' : 'left' };
+            cell.border = BORDER_THIN;
         });
 
         currentRow++;
@@ -384,54 +377,51 @@ function addDischargesTable(sheet: ExcelJS.Worksheet, discharges: DischargeData[
 // ============================================================================
 
 function addTransfersTable(sheet: ExcelJS.Worksheet, transfers: TransferData[], startRow: number): number {
-    const headers = ['TRASLADOS', 'PACIENTE', 'RUT', 'EDAD', 'DIAGNÓSTICO', 'ESPECIALIDAD', 'DESTINO'];
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'TRASLADOS DEL DÍA';
+    titleRow.getCell(1).font = TITLE_STYLE;
+    startRow += 1;
 
-    // Header row
+    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Centro Destino', 'Evacuación'];
     const headerRow = sheet.getRow(startRow);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
         cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        cell.fill = HEADER_FILL;
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = BORDER_THIN;
     });
 
     let currentRow = startRow + 1;
     if (transfers.length === 0) {
         const row = sheet.getRow(currentRow);
-        row.getCell(1).value = 'Sin Traslados';
+        row.getCell(1).value = 'Sin traslados registrados';
         row.getCell(1).font = { italic: true };
         sheet.mergeCells(currentRow, 1, currentRow, headers.length);
         return currentRow + 1;
     }
 
-    transfers.forEach(t => {
+    transfers.forEach((t, idx) => {
+        const destination = t.receivingCenterOther || t.receivingCenter || '';
         const row = sheet.getRow(currentRow);
         const values = [
-            t.status || '',
+            idx + 1,
+            t.bedName || t.bedId || '',
+            t.bedType || '',
             t.patientName || '',
             t.rut || '',
-            t.age || '',
-            t.pathology || '',
-            t.specialty || '',
-            t.destination || ''
+            formatAge(t.age),
+            t.diagnosis || '',
+            destination,
+            t.evacuationMethod || ''
         ];
 
-        values.forEach((value, idx) => {
-            const cell = row.getCell(idx + 1);
+        values.forEach((value, cellIdx) => {
+            const cell = row.getCell(cellIdx + 1);
             cell.value = value;
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
+            cell.alignment = { vertical: 'middle', wrapText: true, horizontal: cellIdx <= 2 ? 'center' : 'left' };
+            cell.border = BORDER_THIN;
         });
 
         currentRow++;
@@ -445,22 +435,20 @@ function addTransfersTable(sheet: ExcelJS.Worksheet, transfers: TransferData[], 
 // ============================================================================
 
 function addCMATable(sheet: ExcelJS.Worksheet, cma: CMAData[], startRow: number): number {
-    const headers = ['HOSPITALIZACIÓN DIURNA', 'PACIENTE', 'RUT', 'EDAD', 'DIAGNÓSTICO', 'ESPECIALIDAD', 'SERVICIO'];
+    const titleRow = sheet.getRow(startRow);
+    titleRow.getCell(1).value = 'HOSPITALIZACIÓN DIURNA (CMA)';
+    titleRow.getCell(1).font = TITLE_STYLE;
+    startRow += 1;
 
-    // Header row
+    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Especialidad', 'Tipo'];
     const headerRow = sheet.getRow(startRow);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = h;
         cell.font = { bold: true, size: 10 };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFB4C7E7' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        cell.fill = HEADER_FILL;
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = BORDER_THIN;
     });
 
     let currentRow = startRow + 1;
@@ -472,31 +460,57 @@ function addCMATable(sheet: ExcelJS.Worksheet, cma: CMAData[], startRow: number)
         return currentRow + 1;
     }
 
-    cma.forEach(c => {
+    cma.forEach((c, idx) => {
         const row = sheet.getRow(currentRow);
         const values = [
-            c.status || '',
+            idx + 1,
+            c.bedName || '',
+            'MEDIA',
             c.patientName || '',
             c.rut || '',
-            c.age || '',
-            c.pathology || '',
+            formatAge(c.age),
+            c.diagnosis || '',
             c.specialty || '',
-            c.service || ''
+            c.interventionType || ''
         ];
 
-        values.forEach((value, idx) => {
-            const cell = row.getCell(idx + 1);
+        values.forEach((value, cellIdx) => {
+            const cell = row.getCell(cellIdx + 1);
             cell.value = value;
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
+            cell.alignment = { vertical: 'middle', wrapText: true, horizontal: cellIdx <= 2 ? 'center' : 'left' };
+            cell.border = BORDER_THIN;
         });
 
         currentRow++;
     });
 
     return currentRow;
+}
+
+function formatDateDDMMYYYY(date?: string): string {
+    if (!date) return '';
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return '';
+
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const year = parsed.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function formatAge(age?: string): string {
+    if (!age) return '';
+    const trimmed = age.trim();
+    if (/^\d+$/.test(trimmed)) {
+        return `${trimmed}a`;
+    }
+    if (/^\d+\s*a$/i.test(trimmed)) {
+        return trimmed.replace(/\s+/g, '');
+    }
+    return trimmed;
+}
+
+function mapBedType(type: string): string {
+    if (type.toLowerCase() === 'cuna') return 'MEDIA';
+    return type.toUpperCase();
 }

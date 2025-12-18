@@ -27,7 +27,13 @@ const buildPatient = (bedId: string, patientName: string): PatientData => ({
 const buildRecord = (date: string, patientName: string): DailyRecord => ({
     date,
     beds: {
-        [BEDS[0].id]: buildPatient(BEDS[0].id, patientName)
+        [BEDS[0].id]: buildPatient(BEDS[0].id, patientName),
+        [BEDS[1].id]: {
+            ...buildPatient(BEDS[1].id, ''),
+            patientName: '',
+            rut: '',
+            age: ''
+        }
     },
     discharges: [],
     transfers: [],
@@ -50,6 +56,24 @@ describe('census master workbook builder', () => {
         expect(firstSheet.getCell('A2').value).toBe('Fecha: 01-05-2024');
         expect(firstSheet.getCell('A6').value).toBe('Ocupadas');
         expect(firstSheet.getCell('A7').value).toBe(1);
+
+        const censusHeaderRow = 10;
+        const censusFirstDataRow = censusHeaderRow + 1;
+
+        expect(firstSheet.getCell('A9').value).toBe('TABLA DE PACIENTES HOSPITALIZADOS');
+        expect(firstSheet.getCell(`A${censusHeaderRow}`).value).toBe('#');
+        expect(firstSheet.getCell(`B${censusFirstDataRow}`).value).toBe(BEDS[0].id);
+        expect(firstSheet.getCell(`C${censusFirstDataRow}`).value).toBe('UTI');
+        expect(firstSheet.getCell(`F${censusFirstDataRow}`).value).toBe('30a');
+        expect(firstSheet.getCell(`I${censusFirstDataRow}`).value).toBe('01-05-2024');
+
+        const freeRow = censusFirstDataRow + 1;
+        expect(firstSheet.getCell(`D${freeRow}`).value).toBe('Libre');
+
+        const dischargeTitleRow = censusHeaderRow + BEDS.length + 2;
+        const dischargeEmptyRow = dischargeTitleRow + 2;
+        expect(firstSheet.getCell(`A${dischargeTitleRow}`).value).toBe('ALTAS DEL DÍA');
+        expect(firstSheet.getCell(`A${dischargeEmptyRow}`).value).toBe('Sin altas registradas');
     });
 
     it('returns a Buffer that can be reopened as Excel and preserves sheet names', async () => {
