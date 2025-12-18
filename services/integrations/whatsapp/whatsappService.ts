@@ -21,7 +21,25 @@ import { db } from '../../../firebaseConfig';
 import type { WhatsAppConfig, WhatsAppLog, WeeklyShift } from '../../../types';
 
 // Bot server URL (configurable)
-const BOT_SERVER_URL = 'http://localhost:3001';
+const BOT_SERVER_URL = (() => {
+    const envUrl = import.meta.env.VITE_WHATSAPP_BOT_URL?.trim();
+    if (envUrl) {
+        return envUrl.replace(/\/$/, '');
+    }
+
+    // On Netlify, use the serverless proxy (avoids CORS and hides the real bot URL)
+    if (!import.meta.env.DEV) {
+        return '/.netlify/functions/whatsapp-proxy';
+    }
+
+    // Local fallback for development
+    return 'http://localhost:3001';
+})();
+
+const buildBotUrl = (path: string) => {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${BOT_SERVER_URL}${normalizedPath}`;
+};
 
 // ============================================
 // BOT COMMUNICATION
@@ -37,7 +55,7 @@ export async function checkBotHealth(): Promise<{
     error?: string;
 }> {
     try {
-        const response = await fetch(`${BOT_SERVER_URL}/health`, {
+        const response = await fetch(buildBotUrl('/health'), {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -64,7 +82,7 @@ export async function sendWhatsAppMessage(
     message: string
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-        const response = await fetch(`${BOT_SERVER_URL}/send-message`, {
+        const response = await fetch(buildBotUrl('/send-message'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ groupId, message })
@@ -101,7 +119,7 @@ export async function sendWhatsAppMessage(
  */
 export async function getWhatsAppGroups(): Promise<Array<{ id: string; name: string }>> {
     try {
-        const response = await fetch(`${BOT_SERVER_URL}/groups`);
+        const response = await fetch(buildBotUrl('/groups'));
         if (!response.ok) throw new Error('Failed to fetch groups');
         return await response.json();
     } catch (error) {
@@ -119,7 +137,7 @@ export async function fetchShiftsFromGroup(): Promise<{
     error?: string;
 }> {
     try {
-        const response = await fetch(`${BOT_SERVER_URL}/fetch-shifts`, {
+        const response = await fetch(buildBotUrl('/fetch-shifts'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
