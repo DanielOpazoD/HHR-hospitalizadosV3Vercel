@@ -121,7 +121,7 @@ export const HandoffView: React.FC<HandoffViewProps> = ({ type = 'nursing', read
     };
 
     const title = isMedical
-        ? 'Entrega Turno médicos'
+        ? 'Entrega Turno Médicos'
         : `Entrega Turno Enfermería - ${selectedShift === 'day' ? 'Turno Largo' : 'Turno Noche'}`;
     const Icon = isMedical ? Stethoscope : MessageSquare;
     const headerColor = isMedical ? 'text-purple-600' : 'text-medical-600';

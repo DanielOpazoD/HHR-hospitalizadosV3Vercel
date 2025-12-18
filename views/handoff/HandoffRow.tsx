@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { PatientData, PatientStatus } from '../../types';
 import { Baby, AlertCircle, Clock } from 'lucide-react';
 import clsx from 'clsx';
@@ -41,22 +41,32 @@ const AutoResizeTextarea: React.FC<AutoResizeTextareaProps> = ({
 }) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    useEffect(() => {
+    const resizeTextarea = useCallback(() => {
         const textarea = textareaRef.current;
         if (textarea) {
             textarea.style.height = 'auto';
+            textarea.style.overflow = 'hidden';
             const lineHeight = 20; // approximate line height in px
             const minHeight = lineHeight * minRows;
             textarea.style.height = `${Math.max(textarea.scrollHeight, minHeight)}px`;
         }
-    }, [value, minRows]);
+    }, [minRows]);
+
+    useEffect(() => {
+        resizeTextarea();
+    }, [value, minRows, resizeTextarea]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        resizeTextarea();
+        onChange(e);
+    };
 
     return (
         <textarea
             ref={textareaRef}
             value={value}
-            onChange={onChange}
-            className={className}
+            onChange={handleChange}
+            className={`overflow-hidden ${className}`}
             rows={minRows}
         />
     );
