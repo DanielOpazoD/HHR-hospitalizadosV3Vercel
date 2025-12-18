@@ -33,8 +33,7 @@ const HANDOFF_MESSAGE_TEMPLATE = `🏥 Hospital Hanga Roa
 
 🔗 Ver entrega completa:
 {{handoffUrl}}
-
-- Enviado automáticamente por Sistema HHR`;
+`;
 
 interface HandoffViewProps {
     type?: 'nursing' | 'medical';

@@ -35,8 +35,6 @@ ${method === 'manual' ? '📤 Enviado manualmente' : '🤖 Envío automático'}
 
 🔗 Ver entrega completa:
 ${handoff.publicUrl}
-
-- Enviado automáticamente por Sistema HHR
   `.trim();
 
     return message;

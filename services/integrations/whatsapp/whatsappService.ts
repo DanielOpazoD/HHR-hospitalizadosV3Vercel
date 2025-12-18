@@ -289,8 +289,7 @@ function getDefaultTemplates(): MessageTemplate[] {
 
 🔗 Ver entrega completa:
 {{handoffUrl}}
-
-- Enviado automáticamente por Sistema HHR`
+`
         },
         {
             id: 'handoff-urgent',

@@ -74,9 +74,6 @@ export const MedicalSignatureView: React.FC = () => {
                                     Firmar y Recibir
                                 </button>
                             </div>
-                            <p className="text-xs sm:text-sm text-slate-500 mt-2">
-                                Al firmar, certifica que ha leído y recibido la entrega de turno conforme.
-                            </p>
                         </>
                     )}
                 </div>
