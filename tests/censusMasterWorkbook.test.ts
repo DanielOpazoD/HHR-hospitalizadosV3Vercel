@@ -50,6 +50,21 @@ describe('census master workbook builder', () => {
         expect(firstSheet.getCell('A2').value).toBe('Fecha: 01-05-2024');
         expect(firstSheet.getCell('A6').value).toBe('Ocupadas');
         expect(firstSheet.getCell('A7').value).toBe(1);
+
+        const censusHeaderRow = 11;
+        const censusFirstDataRow = censusHeaderRow + 1;
+
+        expect(firstSheet.getCell('A10').value).toBe('TABLA DE PACIENTES HOSPITALIZADOS');
+        expect(firstSheet.getCell(`A${censusHeaderRow}`).value).toBe('#');
+        expect(firstSheet.getCell(`B${censusFirstDataRow}`).value).toBe(BEDS[0].id);
+        expect(firstSheet.getCell(`C${censusFirstDataRow}`).value).toBe('UTI');
+        expect(firstSheet.getCell(`F${censusFirstDataRow}`).value).toBe('30a');
+        expect(firstSheet.getCell(`I${censusFirstDataRow}`).value).toBe('01-05-2024');
+
+        const dischargeTitleRow = 10 + 2 + BEDS.length + 1;
+        const dischargeEmptyRow = dischargeTitleRow + 2;
+        expect(firstSheet.getCell(`A${dischargeTitleRow}`).value).toBe('ALTAS DEL DÍA');
+        expect(firstSheet.getCell(`A${dischargeEmptyRow}`).value).toBe('Sin altas registradas');
     });
 
     it('returns a Buffer that can be reopened as Excel and preserves sheet names', async () => {
