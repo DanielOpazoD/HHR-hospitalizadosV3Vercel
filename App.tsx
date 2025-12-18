@@ -196,6 +196,8 @@ function App() {
   const [emailStatus, setEmailStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [emailError, setEmailError] = useState<string | null>(null);
 
+  const showPrintButton = currentModule === 'CUDYR' || currentModule === 'NURSING_HANDOFF' || currentModule === 'MEDICAL_HANDOFF';
+
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('censusEmailRecipients', JSON.stringify(emailRecipients));
@@ -261,6 +263,7 @@ function App() {
                 currentDateString={currentDateString}
                 daysInMonth={daysInMonth}
                 existingDaysInMonth={existingDaysInMonth}
+                onPrintPDF={showPrintButton ? () => window.print() : undefined}
                 onOpenBedManager={() => setShowBedManager(true)}
                 onExportExcel={currentModule === 'CENSUS'
                   ? () => generateCensusMasterExcel(selectedYear, selectedMonth, selectedDay)
@@ -350,4 +353,3 @@ const AppWithErrorBoundary = () => (
 );
 
 export default AppWithErrorBoundary;
-
