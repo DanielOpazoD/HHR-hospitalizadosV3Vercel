@@ -69,7 +69,6 @@ export const exportDataCSV = (record: DailyRecord | null) => {
             escape(p.status),                                       // Estado
             escape(formatDateDDMMYYYY(p.admissionDate)),            // F. Ingreso
             escape(p.hasWristband ? 'SI' : 'NO'),                   // Brazalete
-            escape(p.isBedridden ? 'SI' : 'NO'),                    // Postrado
             escape(p.devices.join('|')),                            // Dispositivos
             escape(formatDateDDMMYYYY(p.deviceDetails?.CUP?.installationDate)),  // CUP F.Instalación
             escape(formatDateDDMMYYYY(p.deviceDetails?.CUP?.removalDate)),       // CUP F.Retiro

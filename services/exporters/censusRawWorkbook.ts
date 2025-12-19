@@ -8,7 +8,7 @@ const getRawHeader = () => [
     'BLOQUEADA', 'MOTIVO_BLOQUEO',
     'PACIENTE', 'RUT', 'EDAD', 'SEXO', 'PREVISION', 'ORIGEN', 'ORIGEN_INGRESO', 'ES_RAPANUI',
     'DIAGNOSTICO', 'ESPECIALIDAD', 'ESTADO', 'FECHA_INGRESO',
-    'BRAZALETE', 'POSTRADO', 'DISPOSITIVOS', 'COMP_QUIRURGICA', 'UPC',
+    'BRAZALETE', 'DISPOSITIVOS', 'COMP_QUIRURGICA', 'UPC',
     'ENFERMEROS', 'ULTIMA_ACTUALIZACION'
 ];
 
@@ -43,7 +43,6 @@ const generateRawRow = (
         p.status || '',
         formatDateDDMMYYYY(p.admissionDate),
         p.hasWristband ? 'SI' : 'NO',
-        p.isBedridden ? 'SI' : 'NO',
         p.devices?.join(', ') || '',
         p.surgicalComplication ? 'SI' : 'NO',
         p.isUPC ? 'SI' : 'NO',

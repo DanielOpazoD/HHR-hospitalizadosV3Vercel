@@ -18,7 +18,6 @@ vi.mock('../services/dataService', () => ({
         admissionDate: '',
         devices: [],
         hasWristband: false,
-        isBedridden: false,
         surgicalComplication: false,
         isUPC: false,
         hasCompanionCrib: false
@@ -44,7 +43,6 @@ describe('usePatientDischarges', () => {
             bedMode: 'Cama',
             clinicalCrib: undefined,
             hasWristband: true,
-            isBedridden: false,
             surgicalComplication: false,
             isUPC: false,
             hasCompanionCrib: false

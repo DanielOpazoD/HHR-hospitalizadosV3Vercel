@@ -217,7 +217,7 @@ function addCensusTable(sheet: ExcelJS.Worksheet, record: DailyRecord, startRow:
     titleRow.getCell(1).font = TITLE_STYLE;
     startRow += 1;
 
-    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Especialidad', 'F. Ingreso', 'Estado', 'Braz', 'C.QX', 'UPC', 'Post', 'Disp.'];
+    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Especialidad', 'F. Ingreso', 'Estado', 'Braz', 'C.QX', 'UPC', 'Disp.'];
     const headerRow = sheet.getRow(startRow);
     headers.forEach((h, idx) => {
         const cell = headerRow.getCell(idx + 1);
@@ -277,17 +277,17 @@ function addCensusRow(
         patient ? (patient.hasWristband ? 'Sí' : 'No') : 'No',
         patient ? (patient.surgicalComplication ? 'Sí' : 'No') : 'No',
         patient ? (patient.isUPC ? 'Sí' : 'No') : 'No',
-        patient ? (patient.isBedridden ? 'Sí' : 'No') : 'No',
         patient?.devices?.join(', ') || ''
     ];
 
     values.forEach((value, idx) => {
         const cell = row.getCell(idx + 1);
         cell.value = value;
+        const alignCenter = idx <= 2 || (idx >= 10 && idx <= 12);
         cell.alignment = {
             vertical: 'middle',
             wrapText: true,
-            horizontal: idx <= 2 || idx >= 10 ? 'center' : 'left'
+            horizontal: alignCenter ? 'center' : 'left'
         };
         cell.border = BORDER_THIN;
 
@@ -309,7 +309,7 @@ function addCensusRow(
             ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBE5D6' } }
             : FREE_FILL;
 
-        sheet.mergeCells(rowNumber, 4, rowNumber, 15);
+        sheet.mergeCells(rowNumber, 4, rowNumber, 14);
     }
 
     return rowNumber + 1;

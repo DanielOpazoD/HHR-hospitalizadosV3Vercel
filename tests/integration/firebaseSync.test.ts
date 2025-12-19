@@ -164,7 +164,6 @@ describe('Firebase Sync Integration', () => {
                     status: PatientStatus.ESTABLE,
                     admissionDate: '2025-12-10',
                     hasWristband: true,
-                    isBedridden: false,
                     devices: ['CUP', 'CVC'],
                     surgicalComplication: false,
                     isUPC: false

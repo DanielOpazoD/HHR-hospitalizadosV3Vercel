@@ -109,8 +109,10 @@ describe('PatientRow Component', () => {
     it('should render checkboxes correctly', () => {
         const patientData: PatientData = {
             patientName: 'Test Patient',
-            hasBracelet: true,
-            isBedridden: false,
+            hasWristband: true,
+            devices: [],
+            surgicalComplication: false,
+            isUPC: false,
         };
 
         render(
@@ -131,9 +133,10 @@ describe('PatientRow Component', () => {
     it('should disable checkboxes in readOnly mode', () => {
         const patientData: PatientData = {
             patientName: 'Test Patient',
-            hasBracelet: true,
-            isBedridden: false,
-            hasSurgicalComplications: true,
+            hasWristband: true,
+            devices: [],
+            surgicalComplication: true,
+            isUPC: false,
         };
 
         render(

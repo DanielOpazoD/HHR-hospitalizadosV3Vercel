@@ -29,7 +29,6 @@ export const CSV_HEADERS = [
     'Estado',
     'F. Ingreso',
     'Brazalete',
-    'Postrado',
     'Dispositivos',
     'CUP F.Instalación',
     'CUP F.Retiro',

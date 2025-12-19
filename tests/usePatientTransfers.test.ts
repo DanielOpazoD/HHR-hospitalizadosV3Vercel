@@ -16,7 +16,6 @@ describe('usePatientTransfers', () => {
         status: '' as any,
         admissionDate: '2025-01-01',
         hasWristband: true,
-        isBedridden: false,
         devices: ['VVP'],
         surgicalComplication: false,
         isUPC: false,

@@ -18,7 +18,6 @@ const buildPatient = (bedId: string, patientName: string): PatientData => ({
     status: PatientStatus.ESTABLE,
     admissionDate: '2024-05-01',
     hasWristband: true,
-    isBedridden: false,
     devices: [],
     surgicalComplication: false,
     isUPC: false,

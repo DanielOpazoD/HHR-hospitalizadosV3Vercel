@@ -43,7 +43,6 @@ export type PatientStringField =
 export type PatientBooleanField =
     | 'isBlocked'
     | 'hasWristband'
-    | 'isBedridden'
     | 'surgicalComplication'
     | 'isUPC'
     | 'hasCompanionCrib';

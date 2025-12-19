@@ -107,7 +107,7 @@ function createDaySheet(workbook: ExcelJS.Workbook, record: DailyRecord): void {
     sheet.columns.forEach(column => {
         column.width = 15;
     });
-    // Column widths: 1=#, 2=Cama, 3=Tipo, 4=Paciente, 5=RUT, 6=Edad, 7=Dx, 8=Esp, 9=F.Ing, 10=Estado, 11=Braz, 12=C.QX, 13=UPC, 14=Post, 15=Disp
+    // Column widths: 1=#, 2=Cama, 3=Tipo, 4=Paciente, 5=RUT, 6=Edad, 7=Dx, 8=Esp, 9=F.Ing, 10=Estado, 11=Braz, 12=C.QX, 13=UPC, 14=Disp
     if (sheet.columns[0]) sheet.columns[0].width = 4;   // #
     if (sheet.columns[1]) sheet.columns[1].width = 10;  // Cama
     if (sheet.columns[2]) sheet.columns[2].width = 7;   // Tipo
@@ -121,8 +121,7 @@ function createDaySheet(workbook: ExcelJS.Workbook, record: DailyRecord): void {
     if (sheet.columns[10]) sheet.columns[10].width = 5; // Braz
     if (sheet.columns[11]) sheet.columns[11].width = 5; // C.QX
     if (sheet.columns[12]) sheet.columns[12].width = 5; // UPC
-    if (sheet.columns[13]) sheet.columns[13].width = 5; // Post
-    if (sheet.columns[14]) sheet.columns[14].width = 18; // Disp
+    if (sheet.columns[13]) sheet.columns[13].width = 18; // Disp
 }
 
 // ============================================================================
@@ -233,8 +232,8 @@ function addCensusTable(sheet: ExcelJS.Worksheet, record: DailyRecord, startRow:
     titleRow.getCell(1).font = { bold: true };
     startRow++;
 
-    // Headers: # / Cama / Tipo / Paciente / RUT / Edad / Diagnóstico / Especialidad / F. Ingreso / Estado / Braz / C.QX / UPC / Post / Disp.
-    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Especialidad', 'F. Ingreso', 'Estado', 'Braz', 'C.QX', 'UPC', 'Post', 'Disp.'];
+    // Headers: # / Cama / Tipo / Paciente / RUT / Edad / Diagnóstico / Especialidad / F. Ingreso / Estado / Braz / C.QX / UPC / Disp.
+    const headers = ['#', 'Cama', 'Tipo', 'Paciente', 'RUT', 'Edad', 'Diagnóstico', 'Especialidad', 'F. Ingreso', 'Estado', 'Braz', 'C.QX', 'UPC', 'Disp.'];
     const headerRow = sheet.getRow(startRow);
     headers.forEach((h, i) => {
         const cell = headerRow.getCell(i + 1);
@@ -274,8 +273,7 @@ function addCensusTable(sheet: ExcelJS.Worksheet, record: DailyRecord, startRow:
             dataRow.getCell(11).value = patient.hasWristband ? 'Sí' : 'No';
             dataRow.getCell(12).value = patient.surgicalComplication ? 'Sí' : 'No';
             dataRow.getCell(13).value = patient.isUPC ? 'Sí' : 'No';
-            dataRow.getCell(14).value = patient.isBedridden ? 'Sí' : 'No';
-            dataRow.getCell(15).value = (patient.devices || []).join(', ');
+            dataRow.getCell(14).value = (patient.devices || []).join(', ');
             startRow++;
 
             // Clinical crib (nested patient)
@@ -295,8 +293,7 @@ function addCensusTable(sheet: ExcelJS.Worksheet, record: DailyRecord, startRow:
                 cribRow.getCell(11).value = crib.hasWristband ? 'Sí' : 'No';
                 cribRow.getCell(12).value = crib.surgicalComplication ? 'Sí' : 'No';
                 cribRow.getCell(13).value = crib.isUPC ? 'Sí' : 'No';
-                cribRow.getCell(14).value = crib.isBedridden ? 'Sí' : 'No';
-                cribRow.getCell(15).value = (crib.devices || []).join(', ');
+                cribRow.getCell(14).value = (crib.devices || []).join(', ');
                 cribRow.eachCell(cell => {
                     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
                 });

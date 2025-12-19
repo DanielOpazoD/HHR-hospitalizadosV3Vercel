@@ -145,11 +145,11 @@ const PatientRowComponent: React.FC<PatientRowProps> = ({ bed, data, currentDate
         <>
             {/* MAIN ROW */}
             <tr className={clsx(
-                "hover:bg-slate-50 transition-colors border-b border-slate-200 text-sm group/row relative",
+                "hover:bg-slate-50 transition-colors border-b border-slate-200 text-[13px] leading-tight group/row relative",
                 isBlocked ? "bg-slate-100" : ""
             )}>
                 {/* Action Menu */}
-                <td className="p-2 text-center border-r border-slate-200 relative w-10 print:hidden">
+                <td className="p-1.5 text-center border-r border-slate-200 relative w-10 print:hidden">
                     <PatientActionMenu
                         isBlocked={!!isBlocked}
                         onAction={handleAction}
@@ -189,7 +189,7 @@ const PatientRowComponent: React.FC<PatientRowProps> = ({ bed, data, currentDate
 
                 {/* Data Cells - Always render PatientInputCells to preserve focus */}
                 {isBlocked ? (
-                    <td colSpan={12} className="p-3 bg-slate-100 text-center">
+                    <td colSpan={10} className="p-2.5 bg-slate-100 text-center">
                         <div className="text-slate-500 text-sm flex items-center justify-center gap-2">
                             <AlertCircle size={14} />
                             <span className="font-medium">Bloqueada</span>
@@ -216,11 +216,11 @@ const PatientRowComponent: React.FC<PatientRowProps> = ({ bed, data, currentDate
 
             {/* CLINICAL CRIB SUB-ROW (If Active) */}
             {data.clinicalCrib && !isBlocked && (
-                <tr className="hover:bg-slate-50 transition-colors border-b border-slate-200 text-sm">
-                    <td className="border-r border-slate-200 text-center p-2">
+                <tr className="hover:bg-slate-50 transition-colors border-b border-slate-200 text-[13px] leading-tight">
+                    <td className="border-r border-slate-200 text-center p-1.5">
                         {/* Empty cell to align with action menu column */}
                     </td>
-                    <td className="p-2 text-right border-r border-slate-200 align-middle">
+                    <td className="p-1.5 text-right border-r border-slate-200 align-middle">
                         <div className="flex justify-center items-center h-full">
                             <button
                                 onClick={() => setShowCribDemographics(true)}

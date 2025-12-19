@@ -56,7 +56,7 @@ export const PatientBedConfig: React.FC<PatientBedConfigProps> = ({
     const hasPatient = !!data.patientName;
 
     return (
-        <td className="p-2 border-r border-slate-200 text-center w-24 relative">
+        <td className="p-1.5 border-r border-slate-200 text-center w-24 relative">
             <div className="flex flex-col items-center">
                 {/* BED NAME */}
                 <div className="font-bold text-lg text-slate-700 flex items-center gap-1">
