@@ -20,12 +20,12 @@ export const RutPassportInput: React.FC<RutPassportInputProps> = ({
     readOnly = false
 }) => {
     return (
-        <td className="p-2 border-r border-slate-200 w-32 relative group/rut">
+        <td className="p-1 border-r border-slate-200 w-32 relative group/rut">
             <div className="relative">
                 <DebouncedInput
                     type="text"
                     className={clsx(
-                        "w-full p-1 border rounded focus:ring-2 focus:ring-medical-500 focus:outline-none text-xs pr-6",
+                        "w-full p-0.5 h-9 border rounded focus:ring-2 focus:ring-medical-500 focus:outline-none text-xs pr-6",
                         isSubRow && "h-8",
                         documentType === 'Pasaporte'
                             ? "border-amber-300 bg-amber-50"
