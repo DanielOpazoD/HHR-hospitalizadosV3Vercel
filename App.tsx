@@ -1,40 +1,18 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState } from 'react';
 import { useDailyRecord, useAuthState, useDateNavigation, useFileOperations, useExistingDays } from './hooks';
 import { useStorageMigration } from './hooks/useStorageMigration';
-import { DailyRecordProvider, RoleProvider, StaffProvider } from './context';
+import { AppProviders } from './app/providers/AppProviders';
+import { ModuleRouter } from './app/router/ModuleRouter';
+import { useCensusEmail } from './app/email/useCensusEmail';
 import { Navbar, DateStrip, SettingsModal, TestAgent, SyncWatcher, DemoModePanel, LoginPage, ErrorBoundary } from './components';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import type { ModuleType } from './components';
-import { canEditModule } from './utils/permissions';
-import { generateCensusMasterExcel, triggerCensusEmail, formatDate, getMonthRecordsFromFirestore } from './services';
+import { generateCensusMasterExcel } from './services';
 import { CensusEmailConfigModal } from './components/CensusEmailConfigModal';
-import { buildCensusEmailBody, CENSUS_DEFAULT_RECIPIENTS } from './constants/email';
-
-// ========== LAZY LOADED VIEWS ==========
-// These views are loaded on-demand when the user navigates to them
-// Using webpackPrefetch to load modules in idle time
-const CensusView = lazy(() => import(/* webpackPrefetch: true */ './views/CensusView').then(m => ({ default: m.CensusView })));
-const CudyrView = lazy(() => import(/* webpackPrefetch: true */ './views/CudyrView').then(m => ({ default: m.CudyrView })));
-const HandoffView = lazy(() => import(/* webpackPrefetch: true */ './views/HandoffView').then(m => ({ default: m.HandoffView })));
-const ReportsView = lazy(() => import(/* webpackChunkName: "reports" */ './views/ReportsView').then(m => ({ default: m.ReportsView })));
-const AuditView = lazy(() => import(/* webpackChunkName: "audit" */ './views/AuditView').then(m => ({ default: m.AuditView })));
-const MedicalSignatureView = lazy(() => import(/* webpackChunkName: "signature" */ './views/MedicalSignatureView').then(m => ({ default: m.MedicalSignatureView })));
-const WhatsAppIntegrationView = lazy(() => import(/* webpackChunkName: "whatsapp" */ './views/whatsapp/WhatsAppIntegrationView').then(m => ({ default: m.WhatsAppIntegrationView })));
 
 // ========== AUTH IMPORTS ==========
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebaseConfig';
-
-// ==========LOADING FALLBACK ==========
-// Optimized loading indicator with skeleton
-const ViewLoader = () => (
-  <div className="flex items-center justify-center min-h-[400px] py-20">
-    <div className="flex flex-col items-center gap-3">
-      <div className="w-12 h-12 border-4 border-medical-200 border-t-medical-600 rounded-full animate-spin" />
-      <span className="text-slate-500 text-sm font-medium">Cargando módulo...</span>
-    </div>
-  </div>
-);
 
 function App() {
   // ========== STORAGE MIGRATION (runs once on startup) ==========
@@ -84,105 +62,6 @@ function App() {
     return nurses.join(' / ');
   }, [record]);
 
-  const [emailRecipients, setEmailRecipients] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return CENSUS_DEFAULT_RECIPIENTS;
-    const stored = window.localStorage.getItem('censusEmailRecipients');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (_) {
-        // ignore parsing errors and fallback to defaults
-      }
-    }
-    return CENSUS_DEFAULT_RECIPIENTS;
-  });
-  const [emailMessage, setEmailMessage] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = window.localStorage.getItem('censusEmailMessage');
-      if (stored) return stored;
-    }
-    return buildCensusEmailBody(currentDateString, nurseSignature);
-  });
-  const [emailMessageEdited, setEmailMessageEdited] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return Boolean(window.localStorage.getItem('censusEmailMessage'));
-    }
-    return false;
-  });
-  const [showEmailConfig, setShowEmailConfig] = useState(false);
-
-  const handleSendCensusEmail = async () => {
-    if (!record) {
-      alert('No hay datos del censo para enviar.');
-      return;
-    }
-
-    if (emailStatus === 'loading') return;
-
-    const recipients = (emailRecipients || []).map(r => r.trim()).filter(Boolean);
-    const resolvedRecipients = recipients.length > 0 ? recipients : CENSUS_DEFAULT_RECIPIENTS;
-    const confirmationText = [
-      `Enviar correo de censo del ${formatDate(currentDateString)}?`,
-      `Destinatarios: ${resolvedRecipients.join(', ')}`,
-      '',
-      '¿Confirmas el envío?'
-    ].join('\n');
-
-    const confirmed = window.confirm(confirmationText);
-    if (!confirmed) return;
-
-    setEmailError(null);
-    setEmailStatus('loading');
-
-    try {
-      const finalMessage = emailMessage?.trim() ? emailMessage : buildCensusEmailBody(currentDateString, nurseSignature);
-      const monthRecords = await getMonthRecordsFromFirestore(selectedYear, selectedMonth);
-      const limitDate = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
-
-      const filteredRecords = monthRecords
-        .filter(r => r.date <= limitDate)
-        .sort((a, b) => a.date.localeCompare(b.date));
-
-      if (!filteredRecords.some(r => r.date === currentDateString) && record) {
-        filteredRecords.push(record);
-      }
-
-      if (filteredRecords.length === 0) {
-        throw new Error('No hay registros del mes para generar el Excel maestro.');
-      }
-
-      filteredRecords.sort((a, b) => a.date.localeCompare(b.date));
-      await triggerCensusEmail({
-        date: currentDateString,
-        records: filteredRecords,
-        recipients: resolvedRecipients,
-        nursesSignature: nurseSignature || undefined,
-        body: finalMessage,
-        userEmail: user?.email,
-        userRole: (user as any)?.role || role
-      });
-      setEmailStatus('success');
-      setTimeout(() => setEmailStatus('idle'), 3000);
-    } catch (error: any) {
-      console.error('Error enviando correo de censo', error);
-      const message = error?.message || 'No se pudo enviar el correo.';
-      setEmailError(message);
-      setEmailStatus('error');
-      alert(message);
-    }
-  };
-
-  const handleEmailMessageChange = (value: string) => {
-    setEmailMessage(value);
-    setEmailMessageEdited(true);
-  };
-
-  const handleResetEmailMessage = () => {
-    setEmailMessage(buildCensusEmailBody(currentDateString, nurseSignature));
-    setEmailMessageEdited(false);
-  };
-
   // ========== FILE OPERATIONS (extracted to hook) ==========
   const { handleExportJSON, handleExportCSV, handleImportJSON } = useFileOperations(record, refresh);
 
@@ -193,28 +72,29 @@ function App() {
   const [isTestAgentRunning, setIsTestAgentRunning] = useState(false);
   const [showBedManager, setShowBedManager] = useState(false);
   const [showDemoPanel, setShowDemoPanel] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [emailError, setEmailError] = useState<string | null>(null);
+  const [showEmailConfig, setShowEmailConfig] = useState(false);
+
+  const {
+    recipients: emailRecipients,
+    setRecipients: setEmailRecipients,
+    message: emailMessage,
+    status: emailStatus,
+    error: emailError,
+    handleMessageChange: handleEmailMessageChange,
+    resetMessage: handleResetEmailMessage,
+    sendEmail: handleSendCensusEmail
+  } = useCensusEmail({
+    currentDateString,
+    nurseSignature,
+    record: record ?? null,
+    selectedYear,
+    selectedMonth,
+    selectedDay,
+    user,
+    role
+  });
 
   const showPrintButton = currentModule === 'CUDYR' || currentModule === 'NURSING_HANDOFF' || currentModule === 'MEDICAL_HANDOFF';
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('censusEmailRecipients', JSON.stringify(emailRecipients));
-    }
-  }, [emailRecipients]);
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('censusEmailMessage', emailMessage);
-    }
-  }, [emailMessage]);
-
-  React.useEffect(() => {
-    if (!emailMessageEdited) {
-      setEmailMessage(buildCensusEmailBody(currentDateString, nurseSignature));
-    }
-  }, [currentDateString, nurseSignature, emailMessageEdited]);
 
   // ========== LOADING STATE ==========
   if (authLoading) {
@@ -226,122 +106,104 @@ function App() {
   }
 
   // ========== AUTH REQUIRED ==========
-  // ========== AUTH REQUIRED ==========
   if (!user && !isSignatureMode) {
     return <LoginPage onLoginSuccess={() => { }} />;
   }
 
+  const roleContext = { role, canEdit, isEditor, isViewer };
+
   // ========== MAIN RENDER ==========
   return (
-    <RoleProvider role={role} canEdit={canEdit} isEditor={isEditor} isViewer={isViewer}>
-      <DailyRecordProvider value={dailyRecordHook}>
-        <StaffProvider>
-          <div className="min-h-screen bg-slate-100 font-sans flex flex-col print:bg-white print:p-0">
-            {!isSignatureMode && (
-              <Navbar
-                currentModule={currentModule}
-                setModule={setCurrentModule}
-                censusViewMode={censusViewMode}
-                setCensusViewMode={setCensusViewMode}
-                onOpenBedManager={() => setShowBedManager(true)}
-                onExportJSON={handleExportJSON}
-                onExportCSV={handleExportCSV}
-                onImportJSON={handleImportJSON}
-                onOpenSettings={() => setShowSettings(true)}
-                userEmail={user?.email}
-                onLogout={handleLogout}
-                isFirebaseConnected={isFirebaseConnected}
-              />
-            )}
+    <AppProviders dailyRecord={dailyRecordHook} roleContext={roleContext}>
+      <div className="min-h-screen bg-slate-100 font-sans flex flex-col print:bg-white print:p-0">
+        {!isSignatureMode && (
+          <Navbar
+            currentModule={currentModule}
+            setModule={setCurrentModule}
+            censusViewMode={censusViewMode}
+            setCensusViewMode={setCensusViewMode}
+            onOpenBedManager={() => setShowBedManager(true)}
+            onExportJSON={handleExportJSON}
+            onExportCSV={handleExportCSV}
+            onImportJSON={handleImportJSON}
+            onOpenSettings={() => setShowSettings(true)}
+            userEmail={user?.email}
+            onLogout={handleLogout}
+            isFirebaseConnected={isFirebaseConnected}
+          />
+        )}
 
-            {/* DateStrip - Only in REGISTER mode and NOT Signature Mode */}
-            {censusViewMode === 'REGISTER' && !isSignatureMode && (
-              <DateStrip
-                selectedYear={selectedYear} setSelectedYear={setSelectedYear}
-                selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth}
-                selectedDay={selectedDay} setSelectedDay={setSelectedDay}
-                currentDateString={currentDateString}
-                daysInMonth={daysInMonth}
-                existingDaysInMonth={existingDaysInMonth}
-                onPrintPDF={showPrintButton ? () => window.print() : undefined}
-                onOpenBedManager={() => setShowBedManager(true)}
-                onExportExcel={currentModule === 'CENSUS'
-                  ? () => generateCensusMasterExcel(selectedYear, selectedMonth, selectedDay)
-                  : undefined}
-                onConfigureEmail={currentModule === 'CENSUS' ? () => setShowEmailConfig(true) : undefined}
-                onSendEmail={currentModule === 'CENSUS' ? handleSendCensusEmail : undefined}
-                emailStatus={emailStatus}
-                emailErrorMessage={emailError}
-                syncStatus={syncStatus}
-                lastSyncTime={lastSyncTime}
-              />
-            )}
+        {/* DateStrip - Only in REGISTER mode and NOT Signature Mode */}
+        {censusViewMode === 'REGISTER' && !isSignatureMode && (
+          <DateStrip
+            selectedYear={selectedYear} setSelectedYear={setSelectedYear}
+            selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth}
+            selectedDay={selectedDay} setSelectedDay={setSelectedDay}
+            currentDateString={currentDateString}
+            daysInMonth={daysInMonth}
+            existingDaysInMonth={existingDaysInMonth}
+            onPrintPDF={showPrintButton ? () => window.print() : undefined}
+            onOpenBedManager={() => setShowBedManager(true)}
+            onExportExcel={currentModule === 'CENSUS'
+              ? () => generateCensusMasterExcel(selectedYear, selectedMonth, selectedDay)
+              : undefined}
+            onConfigureEmail={currentModule === 'CENSUS' ? () => setShowEmailConfig(true) : undefined}
+            onSendEmail={currentModule === 'CENSUS' ? handleSendCensusEmail : undefined}
+            emailStatus={emailStatus}
+            emailErrorMessage={emailError}
+            syncStatus={syncStatus}
+            lastSyncTime={lastSyncTime}
+          />
+        )}
 
-            {/* Main Content Area with Lazy Loading */}
-            <main className="max-w-screen-2xl mx-auto px-4 pt-4 pb-20 flex-1 w-full print:p-0 print:pb-0 print:max-w-none">
-              <ErrorBoundary>
-                <Suspense fallback={<ViewLoader />}>
-                  {isSignatureMode ? (
-                    <MedicalSignatureView />
-                  ) : (
-                    <>
-                      {currentModule === 'CENSUS' && (
-                        <CensusView
-                          viewMode={censusViewMode}
-                          selectedDay={selectedDay}
-                          selectedMonth={selectedMonth}
-                          currentDateString={currentDateString}
-                          onOpenBedManager={() => setShowBedManager(true)}
-                          showBedManagerModal={showBedManager}
-                          onCloseBedManagerModal={() => setShowBedManager(false)}
-                          readOnly={!canEditModule(role, 'CENSUS')}
-                        />
-                      )}
-
-                      {currentModule === 'CUDYR' && <CudyrView readOnly={!canEditModule(role, 'CUDYR')} />}
-                      {currentModule === 'NURSING_HANDOFF' && <HandoffView type="nursing" readOnly={!canEditModule(role, 'NURSING_HANDOFF')} />}
-                      {currentModule === 'MEDICAL_HANDOFF' && <HandoffView type="medical" readOnly={!canEditModule(role, 'MEDICAL_HANDOFF')} />}
-                      {currentModule === 'REPORTS' && <ReportsView />}
-                      {currentModule === 'AUDIT' && <AuditView />}
-                      {currentModule === 'WHATSAPP' && <WhatsAppIntegrationView />}
-                    </>
-                  )}
-                </Suspense>
-              </ErrorBoundary>
-            </main>
-
-            {/* Global Modals */}
-            <SettingsModal
-              isOpen={showSettings}
-              onClose={() => setShowSettings(false)}
-              onGenerateDemo={() => setShowDemoPanel(true)}
-              onRunTest={() => setIsTestAgentRunning(true)}
+        {/* Main Content Area with Lazy Loading */}
+        <main className="max-w-screen-2xl mx-auto px-4 pt-4 pb-20 flex-1 w-full print:p-0 print:pb-0 print:max-w-none">
+          <ErrorBoundary>
+            <ModuleRouter
+              currentModule={currentModule}
+              censusViewMode={censusViewMode}
+              selectedDay={selectedDay}
+              selectedMonth={selectedMonth}
+              currentDateString={currentDateString}
+              showBedManager={showBedManager}
+              onOpenBedManager={() => setShowBedManager(true)}
+              onCloseBedManager={() => setShowBedManager(false)}
+              role={role}
+              isSignatureMode={isSignatureMode}
             />
+          </ErrorBoundary>
+        </main>
 
-            <CensusEmailConfigModal
-              isOpen={showEmailConfig}
-              onClose={() => setShowEmailConfig(false)}
-              recipients={emailRecipients}
-              onRecipientsChange={(value) => setEmailRecipients(value)}
-              message={emailMessage}
-              onMessageChange={handleEmailMessageChange}
-              onResetMessage={handleResetEmailMessage}
-              date={currentDateString}
-              nursesSignature={nurseSignature}
-            />
+        {/* Global Modals */}
+        <SettingsModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          onGenerateDemo={() => setShowDemoPanel(true)}
+          onRunTest={() => setIsTestAgentRunning(true)}
+        />
 
-            <TestAgent
-              isRunning={isTestAgentRunning}
-              onComplete={() => setIsTestAgentRunning(false)}
-              currentRecord={record}
-            />
-          </div>
+        <CensusEmailConfigModal
+          isOpen={showEmailConfig}
+          onClose={() => setShowEmailConfig(false)}
+          recipients={emailRecipients}
+          onRecipientsChange={(value) => setEmailRecipients(value)}
+          message={emailMessage}
+          onMessageChange={handleEmailMessageChange}
+          onResetMessage={handleResetEmailMessage}
+          date={currentDateString}
+          nursesSignature={nurseSignature}
+        />
 
-          <SyncWatcher />
-          <DemoModePanel isOpen={showDemoPanel} onClose={() => setShowDemoPanel(false)} />
-        </StaffProvider>
-      </DailyRecordProvider>
-    </RoleProvider>
+        <TestAgent
+          isRunning={isTestAgentRunning}
+          onComplete={() => setIsTestAgentRunning(false)}
+          currentRecord={record}
+        />
+      </div>
+
+      <SyncWatcher />
+      <DemoModePanel isOpen={showDemoPanel} onClose={() => setShowDemoPanel(false)} />
+    </AppProviders>
   );
 }
 
