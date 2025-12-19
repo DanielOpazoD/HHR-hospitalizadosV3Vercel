@@ -91,7 +91,6 @@ const BasePatientSchema = z.object({
   status: PatientStatusSchema.optional(),
   admissionDate: z.string().regex(DATE_REGEX, 'Formato de fecha inválido (YYYY-MM-DD)').optional().or(z.literal('')),
   hasWristband: z.boolean(),
-  isBedridden: z.boolean(),
   devices: z.array(z.string()),
   surgicalComplication: z.boolean(),
   isUPC: z.boolean(),

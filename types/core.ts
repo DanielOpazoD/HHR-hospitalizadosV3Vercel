@@ -88,7 +88,6 @@ export interface PatientData {
     status: PatientStatus;
     admissionDate: string;
     hasWristband: boolean;
-    isBedridden: boolean;
     devices: string[];
     deviceDetails?: DeviceDetails; // Dates for CUP, CVC, VMI
     surgicalComplication: boolean;

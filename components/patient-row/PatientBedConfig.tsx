@@ -56,10 +56,10 @@ export const PatientBedConfig: React.FC<PatientBedConfigProps> = ({
     const hasPatient = !!data.patientName;
 
     return (
-        <td className="p-2 border-r border-slate-200 text-center w-24 relative">
-            <div className="flex flex-col items-center">
+        <td className="p-1 border-r border-slate-200 text-center w-24 relative">
+            <div className="flex flex-col items-center gap-0.5">
                 {/* BED NAME */}
-                <div className="font-bold text-lg text-slate-700 flex items-center gap-1">
+                <div className="font-bold text-lg text-slate-700 flex items-center gap-1 leading-none">
                     {bed.name}
                     {isCunaMode && <Baby size={16} className="text-pink-500" />}
                 </div>
@@ -67,7 +67,7 @@ export const PatientBedConfig: React.FC<PatientBedConfigProps> = ({
                 {/* Days Hospitalized Counter */}
                 {!isBlocked && hasPatient && daysHospitalized !== null && !showCribControls && (
                     <div
-                        className="flex items-center gap-0.5 mt-0.5 text-slate-500"
+                        className="flex items-center gap-0.5 text-slate-500"
                         title={`${daysHospitalized} días hospitalizado`}
                     >
                         <Clock size={10} className="text-slate-400" />

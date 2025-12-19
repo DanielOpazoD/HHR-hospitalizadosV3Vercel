@@ -16,7 +16,6 @@ describe('useClinicalCrib', () => {
         status: '' as any,
         admissionDate: '2025-01-01',
         hasWristband: true,
-        isBedridden: false,
         devices: [],
         surgicalComplication: false,
         isUPC: false,
