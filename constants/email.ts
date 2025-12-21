@@ -4,15 +4,37 @@ export const CENSUS_DEFAULT_RECIPIENTS = [
     'hospitalizados@hospitalhangaroa.cl'
 ];
 
-export const buildCensusEmailSubject = (date: string) => `Censo diario hospitalizados – ${formatDateDDMMYYYY(date)}`;
+export const buildCensusEmailSubject = (date: string) => `Censo diario hospitalizados - ${formatDateDDMMYYYY(date)}`;
 
 export const buildCensusEmailBody = (date: string, nursesSignature?: string) => {
-    const formattedDate = formatDateDDMMYYYY(date);
-    const signatureLine = nursesSignature ? `\n\nAtentamente,\n${nursesSignature}` : '';
+    const shortDate = formatDateDDMMYYYY(date);
+    const formattedDate = (() => {
+        const [year, month, day] = (date || '').split('-').map(Number);
+        if (!year || !month || !day) return shortDate;
+
+        const parsedDate = new Date(year, month - 1, day);
+        if (Number.isNaN(parsedDate.getTime())) return shortDate;
+
+        return parsedDate.toLocaleDateString('es-CL', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    })();
+
+    const signatureBlock = nursesSignature
+        ? [
+            nursesSignature,
+            'Enfermería - Servicio de Hospitalizados',
+            'Hospital Hanga Roa'
+        ]
+        : [];
+
     return [
-        'Estimados/as,',
-        `Se adjunta el censo diario de hospitalizados correspondiente al ${formattedDate}.`,
-        'Este correo fue generado de manera automática para agilizar la entrega del turno noche.',
-        signatureLine
-    ].filter(Boolean).join('\n');
+        'Estimados/as:',
+        '',
+        `Junto con saludar, adjunto el censo diario de pacientes hospitalizados correspondiente al ${formattedDate}.`,
+        '',
+        ...signatureBlock
+    ].join('\n');
 };

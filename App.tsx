@@ -78,7 +78,7 @@ function App() {
     if (!record) return '';
     const nightShift = record.nursesNightShift?.filter(n => n && n.trim()) || [];
     if (nightShift.length > 0) {
-      return `Enfermería turno noche – ${nightShift.join(' / ')}`;
+      return nightShift.join(' / ');
     }
     const nurses = record.nurses?.filter(n => n && n.trim()) || [];
     return nurses.join(' / ');
