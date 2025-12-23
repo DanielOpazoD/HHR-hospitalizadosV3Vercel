@@ -59,7 +59,7 @@ export const CudyrView: React.FC<CudyrViewProps> = ({ readOnly = false }) => {
     const responsibleNurses = (record.nursesNightShift || []).filter(n => n && n.trim() !== '');
 
     return (
-        <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 print:max-w-none print:px-0 print:space-y-2 print:pb-0 print:break-inside-avoid">
+        <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 print:max-w-none print:px-0 print:space-y-2 print:pb-0 print:break-inside-auto">
             {/* Print-only Header with Icon, Date, Nurses, and Stats */}
             <div className="hidden print:block mb-2 pb-2 border-b border-slate-300">
                 <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-1">
@@ -87,7 +87,7 @@ export const CudyrView: React.FC<CudyrViewProps> = ({ readOnly = false }) => {
                 </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none print:p-0 print:break-inside-avoid">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-hidden print:shadow-none print:border-none print:p-0 print:overflow-visible print:break-inside-auto">
                 {/* Hide CudyrHeader when printing - title already in print header */}
                 <div className="print:hidden">
                     <CudyrHeader
