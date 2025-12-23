@@ -15,4 +15,20 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  /* Force animated elements to render fully visible on print */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .animate-fade-in,
+  .animate-scale-in,
+  [class*="animate-"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
 }
