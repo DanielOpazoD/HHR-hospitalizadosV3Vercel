@@ -1,0 +1,65 @@
+/**
+ * Types Index
+ * Centralized exports for all type definitions
+ * 
+ * Usage: import { PatientData, DailyRecord, ... } from './types';
+ */
+
+// Core domain types (enums, interfaces)
+export {
+    // Enums
+    BedType,
+    Specialty,
+    PatientStatus,
+
+    // Interfaces
+    type BedDefinition,
+    type CudyrScore,
+    type PatientData,
+    type DeviceInfo,
+    type DeviceDetails,
+    type DischargeData,
+    type TransferData,
+    type CMAData,
+    type DailyRecord,
+    type Statistics
+} from './core';
+
+// Value types and utilities
+export {
+    // Field value types for type-safe updates
+    type PatientFieldValue,
+    type PatientStringField,
+    type PatientBooleanField,
+    type PatientArrayField,
+    type PatientEnumField,
+    type PatientObjectField,
+
+    // Error handling
+    type CaughtError,
+    getErrorMessage,
+
+    // Component types
+    type IconComponent,
+
+    // Utility functions
+    randomItem,
+    escapeCsvValue
+} from './valueTypes';
+
+// Audit logging types
+export {
+    type AuditLogEntry,
+    type AuditAction,
+    maskRut
+} from './audit';
+
+// WhatsApp integration types
+export {
+    type WeeklyShift,
+    type ShiftStaffMember,
+    type HandoffWhatsAppStatus,
+    type HandoffAutoSend,
+    type WhatsAppConfig,
+    type WhatsAppLog
+} from './whatsapp';

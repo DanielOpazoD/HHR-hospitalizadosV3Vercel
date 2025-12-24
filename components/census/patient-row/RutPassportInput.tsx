@@ -1,0 +1,86 @@
+import React from 'react';
+import clsx from 'clsx';
+import { DebouncedInput } from '../../ui/DebouncedInput';
+
+interface RutPassportInputProps {
+    value: string;
+    documentType: string;
+    isSubRow?: boolean;
+    onChange: (value: string) => void;
+    onToggleType?: () => void;
+    readOnly?: boolean;
+}
+
+export const RutPassportInput: React.FC<RutPassportInputProps> = ({
+    value,
+    documentType,
+    isSubRow = false,
+    onChange,
+    onToggleType,
+    readOnly = false
+}) => {
+    return (
+        <td className="p-1 border-r border-slate-200 w-32 relative group/rut">
+            <div className="relative">
+                <DebouncedInput
+                    type="text"
+                    className={clsx(
+                        "w-full p-0.5 h-9 border rounded focus:ring-2 focus:ring-medical-500 focus:outline-none text-xs pr-6",
+                        isSubRow && "h-8",
+                        documentType === 'Pasaporte'
+                            ? "border-amber-300 bg-amber-50"
+                            : "border-slate-300"
+                    )}
+                    placeholder={documentType === 'Pasaporte' ? 'N° Pasaporte' : '12.345.678-9'}
+                    value={value || ''}
+                    disabled={readOnly}
+                    onChange={(val) => {
+                        // Auto-detect passport: if starts with letter or has no dots/dash pattern
+                        const looksLikePassport = val.length > 0 && (
+                            /^[A-Za-z]/.test(val) || // Starts with letter
+                            (val.length > 4 && !/^\d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]?$/.test(val.replace(/\s/g, '')))
+                        );
+
+                        // Update document type if needed (only if onToggleType available)
+                        if (!isSubRow && onToggleType) {
+                            if (looksLikePassport && documentType !== 'Pasaporte') {
+                                onToggleType(); // Switch to passport
+                            } else if (!looksLikePassport && val.length > 0 && documentType === 'Pasaporte' && /^\d/.test(val)) {
+                                // If typing numbers and currently in passport mode, switch back to RUT
+                                onToggleType();
+                            }
+                        }
+
+                        onChange(val);
+                    }}
+                />
+
+                {/* Passport indicator - only shows when in passport mode */}
+                {documentType === 'Pasaporte' && (
+                    <span
+                        className="absolute right-1 top-1/2 -translate-y-1/2 text-amber-600 text-[9px] font-bold cursor-pointer"
+                        title="Modo Pasaporte - Click para cambiar a RUT"
+                        onClick={!isSubRow && onToggleType && !readOnly ? onToggleType : undefined}
+                    >
+                        PAS
+                    </span>
+                )}
+
+                {/* Discrete toggle on hover - only for RUT mode */}
+                {documentType !== 'Pasaporte' && !isSubRow && onToggleType && !readOnly && (
+                    <button
+                        onClick={onToggleType}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-300 hover:text-amber-500 opacity-0 group-hover/rut:opacity-100 transition-opacity"
+                        title="Cambiar a Pasaporte"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" />
+                            <circle cx="12" cy="10" r="3" />
+                            <path d="M7 17a5 5 0 0 1 10 0" />
+                        </svg>
+                    </button>
+                )}
+            </div>
+        </td>
+    );
+};

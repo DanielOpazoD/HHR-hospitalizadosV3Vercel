@@ -1,0 +1,228 @@
+/**
+ * DeviceSelector Component
+ * Main component for selecting and managing patient devices.
+ * 
+ * This component ORCHESTRATES sub-components:
+ * - DeviceBadge: Individual device badge display
+ * - DeviceMenu: Dropdown menu for device selection
+ * - VVPSelector: VVP count selection (used within DeviceMenu)
+ * - DeviceDateConfigModal: Modal for device date configuration
+ */
+
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { VVP_DEVICE_KEYS } from '../constants';
+import { DeviceDetails, DeviceInfo } from '../types';
+import {
+    DeviceDateConfigModal,
+    DeviceBadge,
+    DeviceMenu,
+    TRACKED_DEVICES,
+    TrackedDevice
+} from './device-selector';
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+const isAnyVvp = (device: string) => device === 'VVP' || device === '2 VVP' || device.startsWith('VVP#');
+
+const normalizeDevices = (devices: string[]): string[] => {
+    const existingVvpCount = devices.filter(d => d.startsWith('VVP#')).length;
+    const legacyVvpCount = (devices.includes('2 VVP') ? 2 : 0) + (devices.includes('VVP') ? 1 : 0);
+    const finalCount = Math.min(3, Math.max(existingVvpCount, legacyVvpCount));
+    const nonVvpDevices = devices.filter(d => !isAnyVvp(d));
+    return [...nonVvpDevices, ...VVP_DEVICE_KEYS.slice(0, finalCount)];
+};
+
+const areArraysEqual = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    return a.every((val, idx) => val === b[idx]);
+};
+
+// ============================================================================
+// Types
+// ============================================================================
+
+interface DeviceSelectorProps {
+    devices: string[];
+    deviceDetails?: DeviceDetails;
+    onChange: (newDevices: string[]) => void;
+    onDetailsChange?: (details: DeviceDetails) => void;
+    disabled?: boolean;
+    currentDate?: string;
+}
+
+// ============================================================================
+// Component
+// ============================================================================
+
+export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
+    devices = [],
+    deviceDetails = {},
+    onChange,
+    onDetailsChange,
+    disabled,
+    currentDate
+}) => {
+    const [showMenu, setShowMenu] = useState(false);
+    const [editingDevice, setEditingDevice] = useState<TrackedDevice | null>(null);
+    const anchorRef = useRef<HTMLDivElement>(null);
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+    // ========================================================================
+    // Normalize legacy VVP representations
+    // ========================================================================
+    useEffect(() => {
+        const normalized = normalizeDevices(devices);
+        if (!areArraysEqual(devices, normalized)) {
+            onChange(normalized);
+        }
+    }, [devices, onChange]);
+
+    // ========================================================================
+    // VVP State
+    // ========================================================================
+    const vvpCount = VVP_DEVICE_KEYS.filter(key => devices.includes(key)).length;
+    const vvpDevices = VVP_DEVICE_KEYS.filter(key => devices.includes(key));
+
+    // ========================================================================
+    // Event Handlers
+    // ========================================================================
+
+    const setVVPCount = useCallback((count: number) => {
+        const clampedCount = Math.max(0, Math.min(3, count));
+        const newDevices = devices.filter(d => !isAnyVvp(d));
+        const vvpsToAdd = VVP_DEVICE_KEYS.slice(0, clampedCount);
+        onChange([...newDevices, ...vvpsToAdd]);
+
+        if (onDetailsChange) {
+            const updatedDetails = { ...deviceDetails };
+            VVP_DEVICE_KEYS.slice(clampedCount).forEach(key => {
+                delete updatedDetails[key];
+            });
+            onDetailsChange(updatedDetails);
+        }
+    }, [devices, deviceDetails, onChange, onDetailsChange]);
+
+    const toggleDevice = useCallback((device: string) => {
+        if (devices.includes(device)) {
+            onChange(devices.filter(d => d !== device));
+            // Clear details if tracked device is removed
+            if (TRACKED_DEVICES.includes(device as TrackedDevice) && onDetailsChange) {
+                const newDetails = { ...deviceDetails };
+                delete newDetails[device as TrackedDevice];
+                onDetailsChange(newDetails);
+            }
+        } else {
+            onChange([...devices, device]);
+        }
+    }, [devices, deviceDetails, onChange, onDetailsChange]);
+
+    const addCustomDevice = useCallback((device: string) => {
+        if (!devices.includes(device)) {
+            onChange([...devices, device]);
+        }
+    }, [devices, onChange]);
+
+    const removeDevice = useCallback((device: string) => {
+        onChange(devices.filter(d => d !== device));
+    }, [devices, onChange]);
+
+    const handleDeviceConfigSave = useCallback((info: DeviceInfo) => {
+        if (editingDevice && onDetailsChange) {
+            onDetailsChange({
+                ...deviceDetails,
+                [editingDevice]: info
+            });
+        }
+    }, [editingDevice, deviceDetails, onDetailsChange]);
+
+    // ========================================================================
+    // Menu Position
+    // ========================================================================
+
+    const updateMenuPosition = useCallback(() => {
+        if (!anchorRef.current) return;
+        const rect = anchorRef.current.getBoundingClientRect();
+        const width = 260;
+        const left = Math.min(rect.left, window.innerWidth - width - 12);
+        setMenuPosition({
+            top: rect.bottom + 6,
+            left
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!showMenu) return;
+        updateMenuPosition();
+        const handle = () => updateMenuPosition();
+        window.addEventListener('resize', handle);
+        window.addEventListener('scroll', handle, true);
+        return () => {
+            window.removeEventListener('resize', handle);
+            window.removeEventListener('scroll', handle, true);
+        };
+    }, [showMenu, updateMenuPosition]);
+
+    // ========================================================================
+    // Render
+    // ========================================================================
+
+    if (disabled) return null;
+
+    return (
+        <>
+            {/* Device Badges Display */}
+            <div
+                ref={anchorRef}
+                className="flex flex-wrap gap-1 min-h-[26px] cursor-pointer items-center justify-start p-1 rounded hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors relative"
+                onClick={() => setShowMenu(!showMenu)}
+                title="Haga clic para gestionar dispositivos"
+            >
+                {devices.length === 0 && (
+                    <span className="text-slate-300 mx-auto flex items-center justify-center w-full opacity-50">
+                        <Plus size={14} />
+                    </span>
+                )}
+                {devices.map((dev, i) => (
+                    <DeviceBadge
+                        key={i}
+                        device={dev}
+                        deviceDetails={deviceDetails}
+                        currentDate={currentDate}
+                    />
+                ))}
+            </div>
+
+            {/* Dropdown Menu */}
+            {showMenu && (
+                <DeviceMenu
+                    devices={devices}
+                    deviceDetails={deviceDetails}
+                    vvpCount={vvpCount}
+                    vvpDevices={vvpDevices}
+                    menuPosition={menuPosition}
+                    onClose={() => setShowMenu(false)}
+                    onSetVVPCount={setVVPCount}
+                    onToggleDevice={toggleDevice}
+                    onAddCustomDevice={addCustomDevice}
+                    onRemoveDevice={removeDevice}
+                    onConfigureDevice={setEditingDevice}
+                />
+            )}
+
+            {/* Device Configuration Modal */}
+            {editingDevice && (
+                <DeviceDateConfigModal
+                    device={editingDevice}
+                    deviceInfo={deviceDetails[editingDevice] || {}}
+                    currentDate={currentDate}
+                    onSave={handleDeviceConfigSave}
+                    onClose={() => setEditingDevice(null)}
+                />
+            )}
+        </>
+    );
+};
+

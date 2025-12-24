@@ -1,0 +1,87 @@
+@media print {
+  @page {
+    margin: 10mm 10mm 10mm 10mm;
+    background: white;
+  }
+
+  /* Reduce spacing and optimize for print */
+  html,
+  body,
+  #root,
+  main {
+    background: white !important;
+  }
+
+  /* Remove residual tinted backgrounds, pseudo elements, and shadows from every element to avoid gray boxes */
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
+  /* After clearing backgrounds globally, force the page canvas to stay white */
+  html,
+  body,
+  #root,
+  main {
+    background: white !important;
+    background-color: white !important;
+  }
+
+  /* Neutralize entrance animations so printed elements stay visible */
+  .animate-fade-in,
+  .animate-scale-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Ensure appended print-only sections render on a white canvas */
+  .handoff-cudyr-print {
+    background: white !important;
+    page-break-before: always;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Neutralize any residual tinted backgrounds inside the printout */
+  .handoff-cudyr-print,
+  .handoff-cudyr-print * {
+    background: white !important;
+    background-color: white !important;
+  }
+
+  .handoff-cudyr-print table,
+  .handoff-cudyr-print tbody,
+  .handoff-cudyr-print tr,
+  .handoff-cudyr-print td,
+  .handoff-cudyr-print th {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  /* Prevent residual spacing or shadows at the end of the document */
+  .handoff-cudyr-print,
+  .handoff-cudyr-print div,
+  .handoff-cudyr-print table {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  [class*="shadow"] {
+    box-shadow: none !important;
+  }
+}
