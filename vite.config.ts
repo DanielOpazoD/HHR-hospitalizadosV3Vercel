@@ -36,35 +36,15 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: (id) => {
-            // Core React - always needed
-            if (id.includes('node_modules/react')) {
-              return 'vendor-react';
-            }
-            // Firebase - separate chunk (large)
-            if (id.includes('firebase')) {
-              return 'vendor-firebase';
-            }
-            // Excel/Reports - lazy loaded only when exporting
-            if (id.includes('exceljs') || id.includes('file-saver') || id.includes('xlsx')) {
-              return 'vendor-excel';
-            }
-            // Recharts - only for analytics view
-            if (id.includes('recharts')) {
-              return 'vendor-charts';
-            }
-            // UI utilities
-            if (id.includes('lucide-react') || id.includes('clsx') || id.includes('tailwind-merge')) {
-              return 'vendor-ui';
-            }
-            // React Query
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query';
-            }
-            // Zod validation
-            if (id.includes('zod')) {
-              return 'vendor-zod';
-            }
+          manualChunks: {
+            // Keep React together with UI libs that depend on it
+            'vendor-react': ['react', 'react-dom', 'lucide-react'],
+            // Firebase separate
+            'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+            // Charts separate (lazy loaded)
+            'vendor-charts': ['recharts'],
+            // Excel/Reports (lazy loaded)
+            'vendor-excel': ['exceljs', 'file-saver'],
           },
         },
       },
