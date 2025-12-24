@@ -131,6 +131,13 @@ export const useDailyRecordSync = (currentDateString: string): UseDailyRecordSyn
     // ========================================================================
     // Save Handler
     // ========================================================================
+    /**
+     * Saves the complete DailyRecord to both local storage and Firestore.
+     * Updates the local state and sync status.
+     * 
+     * @param updatedRecord - The new record state to persist
+     * @returns Promise that resolves when the save operation completes
+     */
     const saveAndUpdate = useCallback(async (updatedRecord: DailyRecord) => {
         isSavingRef.current = true;
         lastLocalChangeRef.current = Date.now();
@@ -163,6 +170,18 @@ export const useDailyRecordSync = (currentDateString: string): UseDailyRecordSyn
         }
     }, [error]);
 
+    /**
+     * Performs an optimistic partial update to the DailyRecord.
+     * Uses dot-notation paths for efficient Firestore updates.
+     * 
+     * @param partial - Object containing key paths and values to update
+     * @returns Promise that resolves when the patch is applied
+     * 
+     * @example
+     * ```typescript
+     * await patchRecord({ 'beds.B01.patientName': 'Juan Pérez' });
+     * ```
+     */
     const patchRecord = useCallback(async (partial: DailyRecordPatchLoose) => {
         isSavingRef.current = true;
 

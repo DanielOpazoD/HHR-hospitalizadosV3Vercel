@@ -9,22 +9,16 @@ import { DeviceDetails } from '../../types';
 describe('DeviceMenu Logic', () => {
     describe('Device State', () => {
         const defaultDevice: DeviceDetails = {
-            catheter: false,
-            oxygenTherapy: false,
-            ngt: false,
-            tracheostomy: false,
-            chestTube: false,
-            ventilator: false,
+            CUP: undefined,
+            CVC: undefined,
+            VMI: undefined,
         };
 
         it('should have all device options', () => {
             const deviceOptions = [
-                'catheter',
-                'oxygenTherapy',
-                'ngt',
-                'tracheostomy',
-                'chestTube',
-                'ventilator'
+                'CUP',
+                'CVC',
+                'VMI'
             ];
 
             expect(Object.keys(defaultDevice)).toEqual(expect.arrayContaining(deviceOptions));
@@ -37,40 +31,34 @@ describe('DeviceMenu Logic', () => {
 
         it('should count active devices correctly', () => {
             const activeDevice: DeviceDetails = {
-                catheter: true,
-                oxygenTherapy: true,
-                ngt: false,
-                tracheostomy: false,
-                chestTube: true,
-                ventilator: false,
+                CUP: { installationDate: '2024-01-01' },
+                CVC: { installationDate: '2024-01-01' },
+                VMI: undefined,
             };
 
             const count = Object.values(activeDevice).filter(Boolean).length;
-            expect(count).toBe(3);
+            expect(count).toBe(2);
         });
 
         it('should toggle device state', () => {
             const device = { ...defaultDevice };
-            device.catheter = !device.catheter;
-            expect(device.catheter).toBe(true);
+            device.CUP = device.CUP ? undefined : { installationDate: '2024-01-01' };
+            expect(device.CUP).toBeDefined();
 
-            device.catheter = !device.catheter;
-            expect(device.catheter).toBe(false);
+            device.CUP = undefined;
+            expect(device.CUP).toBeUndefined();
         });
     });
 
     describe('Device Labels', () => {
         const deviceLabels: Record<string, string> = {
-            catheter: 'Catéter Vesical (SV)',
-            oxygenTherapy: 'Oxigenoterapia',
-            ngt: 'Sonda Nasogástrica (SNG)',
-            tracheostomy: 'Traqueostomía',
-            chestTube: 'Tubo Pleural',
-            ventilator: 'Ventilador',
+            CUP: 'Sonda Foley (CUP)',
+            CVC: 'Vía Central (CVC)',
+            VMI: 'Ventilación Mecánica (VMI)',
         };
 
         it('should have labels for all device types', () => {
-            const deviceTypes = ['catheter', 'oxygenTherapy', 'ngt', 'tracheostomy', 'chestTube', 'ventilator'];
+            const deviceTypes = ['CUP', 'CVC', 'VMI'];
             deviceTypes.forEach(type => {
                 expect(deviceLabels[type]).toBeDefined();
                 expect(typeof deviceLabels[type]).toBe('string');
@@ -78,9 +66,9 @@ describe('DeviceMenu Logic', () => {
         });
 
         it('should have Spanish labels', () => {
-            expect(deviceLabels.catheter).toContain('Catéter');
-            expect(deviceLabels.oxygenTherapy).toContain('Oxígeno');
-            expect(deviceLabels.ngt).toContain('Sonda');
+            expect(deviceLabels.CUP).toContain('Sonda');
+            expect(deviceLabels.CVC).toContain('Vía');
+            expect(deviceLabels.VMI).toContain('Ventilación');
         });
     });
 

@@ -153,7 +153,11 @@ class ErrorService {
     }
 
     /**
-     * Log an error with context
+     * Records an error entry in the service.
+     * Logged errors are kept in memory and critical/high severity errors
+     * are persisted to local storage for persistent tracking.
+     * 
+     * @param params - Object containing error details (message, error, context)
      */
     logError(params: {
         message: string;
@@ -198,7 +202,12 @@ class ErrorService {
     }
 
     /**
-     * Log Firebase error with better context
+     * Convenient method for logging errors originating from Firebase services.
+     * Automatically assigns severity based on the Firebase error code.
+     * 
+     * @param error - The error object from Firebase
+     * @param operation - A string describing the failed operation (e.g., 'saveRecord')
+     * @param context - Additional debugging information
      */
     logFirebaseError(error: unknown, operation: string, context?: Record<string, unknown>): void {
         const err = error as { code?: string };
@@ -234,7 +243,11 @@ class ErrorService {
     }
 
     /**
-     * Get user-friendly error message
+     * Converts a technical error into a human-readable message in Spanish.
+     * Useful for displaying end-user notifications.
+     * 
+     * @param error - Technical error object
+     * @returns A friendly message suitable for user-facing UI
      */
     getUserFriendlyMessage(error: unknown): string {
         const err = error as { code?: string; message?: string; name?: string };

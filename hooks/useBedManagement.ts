@@ -1,13 +1,3 @@
-/**
- * useBedManagement Hook
- * Manages bed operations: patient updates, CUDYR scores, blocking, moving.
- * 
- * This hook ORCHESTRATES specialized hooks:
- * - usePatientValidation: Field validation and formatting
- * - useBedOperations: Bed-level operations (clear, move, block)
- * - useClinicalCrib: Clinical crib nested patient operations
- */
-
 import { useCallback } from 'react';
 import { DailyRecord, PatientData, CudyrScore, PatientFieldValue } from '../types';
 import { usePatientValidation } from './usePatientValidation';
@@ -16,20 +6,59 @@ import { useClinicalCrib } from './useClinicalCrib';
 import { logPatientAdmission } from '../services/admin/auditService';
 import { DailyRecordPatchLoose } from './useDailyRecordTypes';
 
-// ============================================================================
-// Types
-// ============================================================================
-
+/**
+ * Interface defining the actions available for bed management.
+ */
 export interface BedManagementActions {
+    /**
+     * Updates a single field for a patient in a specific bed.
+     * Includes validation and audit logging for admissions.
+     */
     updatePatient: (bedId: string, field: keyof PatientData, value: PatientFieldValue) => void;
+
+    /**
+     * Updates multiple patient fields atomically.
+     */
     updatePatientMultiple: (bedId: string, fields: Partial<PatientData>) => void;
+
+    /**
+     * Updates a specific field in the CUDYR score for a patient.
+     */
     updateCudyr: (bedId: string, field: keyof CudyrScore, value: number) => void;
+
+    /**
+     * Manages clinical crib operations (create, remove, or update fields).
+     */
     updateClinicalCrib: (bedId: string, field: keyof PatientData | 'create' | 'remove', value?: PatientFieldValue) => void;
+
+    /**
+     * Updates multiple clinical crib fields atomically.
+     */
     updateClinicalCribMultiple: (bedId: string, fields: Partial<PatientData>) => void;
+
+    /**
+     * Clears patient data from a bed (Discharge/Cleanup).
+     */
     clearPatient: (bedId: string) => void;
+
+    /**
+     * Clears all beds in the current record.
+     */
     clearAllBeds: () => void;
+
+    /**
+     * Moves or copies a patient from one bed to another.
+     */
     moveOrCopyPatient: (type: 'move' | 'copy', sourceBedId: string, targetBedId: string) => void;
+
+    /**
+     * Toggles the blocked status of a bed with an optional reason.
+     */
     toggleBlockBed: (bedId: string, reason?: string) => void;
+
+    /**
+     * Toggles an extra bed visibility.
+     */
     toggleExtraBed: (bedId: string) => void;
 }
 
@@ -37,6 +66,17 @@ export interface BedManagementActions {
 // Hook Implementation
 // ============================================================================
 
+/**
+ * useBedManagement Hook
+ * 
+ * Orchestrates all bed-related operations including patient data updates,
+ * CUDYR scoring, and physical bed management (blocking, moving).
+ * 
+ * @param record - The current DailyRecord
+ * @param saveAndUpdate - Function to save the entire record
+ * @param patchRecord - Function to perform partial updates (atomic)
+ * @returns An object containing all bed management actions
+ */
 export const useBedManagement = (
     record: DailyRecord | null,
     saveAndUpdate: (updatedRecord: DailyRecord) => void,

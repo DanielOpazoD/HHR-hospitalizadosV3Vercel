@@ -99,7 +99,18 @@ const docToRecord = (docData: Record<string, unknown>, docId: string): DailyReco
     } as DailyRecord;
 };
 
-// Save record to Firestore
+/**
+ * Saves a complete DailyRecord to Firestore.
+ * Performs sanitization to ensure compatibility with Firestore.
+ * 
+ * @param record - The DailyRecord object to persist
+ * @returns Promise that resolves when the save operation is finished
+ * 
+ * @example
+ * ```typescript
+ * await saveRecordToFirestore(myRecord);
+ * ```
+ */
 export const saveRecordToFirestore = async (record: DailyRecord): Promise<void> => {
     try {
         const docRef = doc(getRecordsCollection(), record.date);
@@ -120,7 +131,19 @@ export const saveRecordToFirestore = async (record: DailyRecord): Promise<void> 
     }
 };
 
-// Partial update using updateDoc (safer prevents overwrites)
+/**
+ * Performs a partial update to a DailyRecord in Firestore using dot-notation paths.
+ * This is efficient as it only modifies the specified fields.
+ * 
+ * @param date - The date identifier (YYYY-MM-DD)
+ * @param partialData - Object containing flattened key paths
+ * @returns Promise that resolves when the update is finished
+ * 
+ * @example
+ * ```typescript
+ * await updateRecordPartial('2024-12-24', { 'beds.BED_01.isBlocked': true });
+ * ```
+ */
 export const updateRecordPartial = async (date: string, partialData: Partial<DailyRecord>): Promise<void> => {
     try {
         const docRef = doc(getRecordsCollection(), date);
@@ -139,7 +162,12 @@ export const updateRecordPartial = async (date: string, partialData: Partial<Dai
     }
 };
 
-// Get single record from Firestore
+/**
+ * Retrieves a DailyRecord from Firestore for a specific date.
+ * 
+ * @param date - Date identifier in YYYY-MM-DD format
+ * @returns The DailyRecord if found, null otherwise
+ */
 export const getRecordFromFirestore = async (date: string): Promise<DailyRecord | null> => {
     try {
         const docRef = doc(getRecordsCollection(), date);

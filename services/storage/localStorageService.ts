@@ -15,7 +15,9 @@ export const NURSES_STORAGE_KEY = 'hanga_roa_nurses_list';
 // ============================================================================
 
 /**
- * Get all stored records from localStorage
+ * Retrieves all DailyRecords stored in the local storage.
+ * 
+ * @returns Object mapping local ISO date strings to DailyRecord objects
  */
 export const getStoredRecords = (): Record<string, DailyRecord> => {
     try {
@@ -28,7 +30,9 @@ export const getStoredRecords = (): Record<string, DailyRecord> => {
 };
 
 /**
- * Save a single record to localStorage
+ * Saves a DailyRecord to the local storage, updating the existing record collection.
+ * 
+ * @param record - The DailyRecord object to save
  */
 export const saveRecordLocal = (record: DailyRecord): void => {
     const allRecords = getStoredRecords();
@@ -37,7 +41,10 @@ export const saveRecordLocal = (record: DailyRecord): void => {
 };
 
 /**
- * Get record for a specific date from localStorage
+ * Retrieves a DailyRecord from local storage for a specific date.
+ * 
+ * @param date - Date identifier in YYYY-MM-DD format
+ * @returns The DailyRecord if found, null otherwise
  */
 export const getRecordForDate = (date: string): DailyRecord | null => {
     const records = getStoredRecords();

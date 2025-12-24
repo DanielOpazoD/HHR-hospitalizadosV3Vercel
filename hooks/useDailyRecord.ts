@@ -69,6 +69,18 @@ export const useDailyRecord = (currentDateString: string): DailyRecordContextTyp
     // ========================================================================
     // Day Lifecycle
     // ========================================================================
+    /**
+     * Creates a new daily record for the current date.
+     * Optionally copies patient data from the previous day.
+     * 
+     * @param copyFromPrevious - If true, attempts to clone the previous day's patient census
+     * @returns Promise that resolves when the day is initialized
+     * 
+     * @example
+     * ```typescript
+     * await createDay(true);
+     * ```
+     */
     const createDay = useCallback(async (copyFromPrevious: boolean) => {
         let prevDate: string | undefined = undefined;
 
@@ -99,6 +111,11 @@ export const useDailyRecord = (currentDateString: string): DailyRecordContextTyp
         setRecord({ ...demoRecord });
     }, [currentDateString, markLocalChange, setRecord]);
 
+    /**
+     * Resets the current day by deleting its record from the repository.
+     * 
+     * @returns Promise that resolves when the record is deleted
+     */
     const resetDay = useCallback(async () => {
         await deleteDay(currentDateString);
         setRecord(null);

@@ -66,8 +66,21 @@ export interface IDailyRecordRepository {
 // ============================================================================
 
 /**
- * Get record for a specific date
- * Uses demo storage when demo mode is active
+ * Retrieves the daily record for a specific date.
+ * 
+ * @param date - Date in YYYY-MM-DD format
+ * @returns The daily record if it exists, null otherwise
+ * 
+ * @example
+ * ```typescript
+ * const record = getForDate('2024-12-24');
+ * if (record) {
+ *   console.log(`Beds: ${Object.keys(record.beds).length}`);
+ * }
+ * ```
+ * 
+ * @remarks
+ * Uses demo storage when demo mode is active, otherwise reads from localStorage.
  */
 export const getForDate = (date: string): DailyRecord | null => {
     if (demoModeActive) {
@@ -77,8 +90,19 @@ export const getForDate = (date: string): DailyRecord | null => {
 };
 
 /**
- * Get the previous day's record
- * Uses demo storage when demo mode is active
+ * Retrieves the previous day's record relative to the given date.
+ * 
+ * @param date - Reference date in YYYY-MM-DD format
+ * @returns The previous day's record if it exists, null otherwise
+ * 
+ * @example
+ * ```typescript
+ * const prevRecord = getPreviousDay('2024-12-24');
+ * // Returns record for 2024-12-23 if it exists
+ * ```
+ * 
+ * @remarks
+ * Useful for copying patient data when initializing a new day.
  */
 export const getPreviousDay = (date: string): DailyRecord | null => {
     if (demoModeActive) {
@@ -88,9 +112,25 @@ export const getPreviousDay = (date: string): DailyRecord | null => {
 };
 
 /**
- * Save a record to storage
- * In demo mode: only saves to demo localStorage (no Firestore)
- * In normal mode: saves to localStorage and syncs to Firestore
+ * Saves a daily record to storage.
+ * 
+ * @param record - The daily record to save
+ * @returns Promise that resolves when save is complete
+ * @throws Error if Firestore sync fails (data still saved locally)
+ * 
+ * @example
+ * ```typescript
+ * await save({
+ *   date: '2024-12-24',
+ *   beds: {},
+ *   nurses: ['Juan Pérez'],
+ *   lastUpdated: new Date().toISOString()
+ * });
+ * ```
+ * 
+ * @remarks
+ * - In demo mode: saves only to demo localStorage (no Firestore)
+ * - In normal mode: saves to localStorage first (instant), then syncs to Firestore
  */
 export const save = async (record: DailyRecord): Promise<void> => {
     if (demoModeActive) {
@@ -114,8 +154,20 @@ export const save = async (record: DailyRecord): Promise<void> => {
 };
 
 /**
- * Updates specific fields of a record without overwriting the whole document.
- * Safest way to update concurrent edits (e.g. doctor name, sent status).
+ * Updates specific fields of a daily record without overwriting the entire document.
+ * This is the safest way to handle concurrent edits from different users.
+ * 
+ * @param date - Date in YYYY-MM-DD format
+ * @param partialData - Object containing keys (possibly with dot notation) and values to update
+ * @returns Promise that resolves when the update is propagated
+ * 
+ * @example
+ * ```typescript
+ * await updatePartial('2024-12-24', {
+ *   'beds.BED_01.patientName': 'Nuevo Paciente',
+ *   'beds.BED_01.isBlocked': false
+ * });
+ * ```
  */
 export const updatePartial = async (date: string, partialData: Record<string, any>): Promise<void> => {
     // 1. Update local storage (Merge with dot notation support)
@@ -146,8 +198,26 @@ export const updatePartial = async (date: string, partialData: Record<string, an
 };
 
 /**
- * Subscribe to real-time updates for a specific date
- * In demo mode: returns a no-op unsubscribe (no real-time sync)
+ * Subscribes to real-time updates for a specific date.
+ * 
+ * @param date - Date in YYYY-MM-DD format to subscribe to
+ * @param callback - Function called when the record changes
+ * @returns Unsubscribe function to stop listening
+ * 
+ * @example
+ * ```typescript
+ * const unsubscribe = subscribe('2024-12-24', (record) => {
+ *   if (record) {
+ *     console.log('Record updated:', record.lastUpdated);
+ *   }
+ * });
+ * 
+ * // Later, when component unmounts:
+ * unsubscribe();
+ * ```
+ * 
+ * @remarks
+ * In demo mode, returns a no-op unsubscribe function (no real-time sync).
  */
 export const subscribe = (
     date: string,
@@ -163,8 +233,24 @@ export const subscribe = (
 };
 
 /**
- * Initialize a new day record, optionally copying from a previous date
- * In demo mode: uses demo storage
+ * Initializes a new daily record for the given date.
+ * If the record already exists, it is returned immediately.
+ * 
+ * @param date - Date in YYYY-MM-DD format to initialize
+ * @param copyFromDate - Optional date to copy active patients and settings from
+ * @returns Promise that resolves to the initialized or existing DailyRecord
+ * 
+ * @example
+ * ```typescript
+ * const record = await initializeDay('2024-12-25', '2024-12-24');
+ * ```
+ * 
+ * @remarks
+ * When copying from a previous date:
+ * - Active patients are copied (name, rut, etc.)
+ * - CUDYR scoring is reset for the new day
+ * - Nursing shift notes are inherited (Previous night -> New day)
+ * - Bed configurations (blocking, modes) are preserved
  */
 export const initializeDay = async (
     date: string,
@@ -243,8 +329,15 @@ export const initializeDay = async (
 };
 
 /**
- * Delete a day record, returning to virgin state (no record)
- * In demo mode: uses demo storage
+ * Deletes a daily record from both local and remote storage.
+ * 
+ * @param date - Date in YYYY-MM-DD format of the record to delete
+ * @returns Promise that resolves when the record is deleted
+ * 
+ * @example
+ * ```typescript
+ * await deleteDay('2024-12-24');
+ * ```
  */
 export const deleteDay = async (date: string): Promise<void> => {
     if (demoModeActive) {
@@ -282,14 +375,19 @@ import {
 const TENS_STORAGE_KEY = 'hanga_roa_tens_list';
 
 /**
- * Get nurse catalog from local storage
+ * Retrieves the current catalog of nurse names from local storage.
+ * 
+ * @returns Array of nurse names
  */
 export const getNurses = (): string[] => {
     return getStoredNurses();
 };
 
 /**
- * Save nurse catalog to local storage and Firestore
+ * Saves the nurse catalog to local storage and syncs it with Firestore.
+ * 
+ * @param nurses - Array of nurse names to save
+ * @returns Promise that resolves when saving is complete
  */
 export const saveNurses = async (nurses: string[]): Promise<void> => {
     saveStoredNurses(nurses);
@@ -303,7 +401,10 @@ export const saveNurses = async (nurses: string[]): Promise<void> => {
 };
 
 /**
- * Subscribe to nurse catalog changes
+ * Subscribes to real-time updates for the nurse catalog.
+ * 
+ * @param callback - Function called when the nurse catalog changes
+ * @returns Unsubscribe function
  */
 export const subscribeNurses = (callback: (nurses: string[]) => void): (() => void) => {
     if (demoModeActive) {
@@ -313,7 +414,9 @@ export const subscribeNurses = (callback: (nurses: string[]) => void): (() => vo
 };
 
 /**
- * Get TENS catalog from local storage
+ * Retrieves the current catalog of TENS names from local storage.
+ * 
+ * @returns Array of TENS names
  */
 export const getTens = (): string[] => {
     try {
@@ -325,7 +428,10 @@ export const getTens = (): string[] => {
 };
 
 /**
- * Save TENS catalog to local storage and Firestore
+ * Saves the TENS catalog to local storage and syncs it with Firestore.
+ * 
+ * @param tens - Array of TENS names to save
+ * @returns Promise that resolves when saving is complete
  */
 export const saveTens = async (tens: string[]): Promise<void> => {
     localStorage.setItem(TENS_STORAGE_KEY, JSON.stringify(tens));
@@ -339,7 +445,10 @@ export const saveTens = async (tens: string[]): Promise<void> => {
 };
 
 /**
- * Subscribe to TENS catalog changes
+ * Subscribes to real-time updates for the TENS catalog.
+ * 
+ * @param callback - Function called when the TENS catalog changes
+ * @returns Unsubscribe function
  */
 export const subscribeTens = (callback: (tens: string[]) => void): (() => void) => {
     if (demoModeActive) {
@@ -352,6 +461,10 @@ export const subscribeTens = (callback: (tens: string[]) => void): (() => void) 
 // Repository Object Export (Alternative API)
 // ============================================================================
 
+/**
+ * Repository interface for daily records.
+ * Provides methods for CRUD operations and real-time synchronization.
+ */
 export const DailyRecordRepository: IDailyRecordRepository = {
     getForDate,
     getPreviousDay,
@@ -361,12 +474,20 @@ export const DailyRecordRepository: IDailyRecordRepository = {
     deleteDay
 };
 
-// Export catalog repository for nurse/TENS operations
+/**
+ * Repository for managing catalogs (Nurses and TENS).
+ */
 export const CatalogRepository = {
+    /** Gets the list of available nurses */
     getNurses,
+    /** Saves the list of nurses */
     saveNurses,
+    /** Subscribes to changes in the nurse list */
     subscribeNurses,
+    /** Gets the list of available TENS */
     getTens,
+    /** Saves the list of TENS */
     saveTens,
+    /** Subscribes to changes in the TENS list */
     subscribeTens
 };

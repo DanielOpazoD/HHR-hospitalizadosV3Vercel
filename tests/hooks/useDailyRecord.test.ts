@@ -46,12 +46,14 @@ describe('useDailyRecord', () => {
         expect(result.current.record).toEqual(mockRecord);
     });
 
-    it('should subscribe to updates on mount', () => {
+    it('should subscribe to updates on mount', async () => {
         renderHook(() => useDailyRecord(mockDate));
-        expect(DailyRecordRepository.subscribe).toHaveBeenCalledWith(mockDate, expect.any(Function));
+        await waitFor(() => {
+            expect(DailyRecordRepository.subscribe).toHaveBeenCalledWith(mockDate, expect.any(Function));
+        });
     });
 
-    it('should update record when date changes', () => {
+    it('should update record when date changes', async () => {
         const { rerender } = renderHook(({ date }) => useDailyRecord(date), {
             initialProps: { date: mockDate }
         });
@@ -62,8 +64,12 @@ describe('useDailyRecord', () => {
 
         rerender({ date: newDate });
 
-        expect(DailyRecordRepository.getForDate).toHaveBeenCalledWith(newDate);
-        expect(DailyRecordRepository.subscribe).toHaveBeenCalledWith(newDate, expect.any(Function));
+        await waitFor(() => {
+            expect(DailyRecordRepository.getForDate).toHaveBeenCalledWith(newDate);
+        });
+        await waitFor(() => {
+            expect(DailyRecordRepository.subscribe).toHaveBeenCalledWith(newDate, expect.any(Function));
+        });
     });
 
     it('should handle remote updates correctly', async () => {
@@ -75,6 +81,11 @@ describe('useDailyRecord', () => {
         });
 
         const { result } = renderHook(() => useDailyRecord(mockDate));
+
+        // Wait for auth and subscription to initialize
+        await waitFor(() => {
+            expect(DailyRecordRepository.subscribe).toHaveBeenCalled();
+        });
 
         const remoteRecord: DailyRecord = {
             ...mockRecord,

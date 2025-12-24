@@ -191,41 +191,41 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
 /**
  * Log patient admission (when patientName is set on empty bed)
  */
-export const logPatientAdmission = (bedId: string, patientName: string, rut: string, recordDate: string): void => {
-    logAuditEvent(getCurrentUserEmail(), 'PATIENT_ADMITTED', 'patient', bedId, { patientName, bedId }, rut, recordDate);
+export const logPatientAdmission = (bedId: string, patientName: string, rut: string, recordDate: string): Promise<void> => {
+    return logAuditEvent(getCurrentUserEmail(), 'PATIENT_ADMITTED', 'patient', bedId, { patientName, bedId }, rut, recordDate);
 };
 
 /**
  * Log patient discharge
  */
-export const logPatientDischarge = (bedId: string, patientName: string, rut: string, status: string, recordDate: string): void => {
-    logAuditEvent(getCurrentUserEmail(), 'PATIENT_DISCHARGED', 'discharge', bedId, { patientName, status, bedId }, rut, recordDate);
+export const logPatientDischarge = (bedId: string, patientName: string, rut: string, status: string, recordDate: string): Promise<void> => {
+    return logAuditEvent(getCurrentUserEmail(), 'PATIENT_DISCHARGED', 'discharge', bedId, { patientName, status, bedId }, rut, recordDate);
 };
 
 /**
  * Log patient transfer
  */
-export const logPatientTransfer = (bedId: string, patientName: string, rut: string, destination: string, recordDate: string): void => {
-    logAuditEvent(getCurrentUserEmail(), 'PATIENT_TRANSFERRED', 'transfer', bedId, { patientName, destination, bedId }, rut, recordDate);
+export const logPatientTransfer = (bedId: string, patientName: string, rut: string, destination: string, recordDate: string): Promise<void> => {
+    return logAuditEvent(getCurrentUserEmail(), 'PATIENT_TRANSFERRED', 'transfer', bedId, { patientName, destination, bedId }, rut, recordDate);
 };
 
 /**
  * Log patient data cleared from bed
  */
-export const logPatientCleared = (bedId: string, patientName: string, rut: string, recordDate: string): void => {
-    logAuditEvent(getCurrentUserEmail(), 'PATIENT_CLEARED', 'patient', bedId, { patientName, bedId }, rut, recordDate);
+export const logPatientCleared = (bedId: string, patientName: string, rut: string, recordDate: string): Promise<void> => {
+    return logAuditEvent(getCurrentUserEmail(), 'PATIENT_CLEARED', 'patient', bedId, { patientName, bedId }, rut, recordDate);
 };
 
 /**
  * Log daily record deletion
  */
-export const logDailyRecordDeleted = (date: string): void => {
-    logAuditEvent(getCurrentUserEmail(), 'DAILY_RECORD_DELETED', 'dailyRecord', date, { date }, undefined, date);
+export const logDailyRecordDeleted = (date: string): Promise<void> => {
+    return logAuditEvent(getCurrentUserEmail(), 'DAILY_RECORD_DELETED', 'dailyRecord', date, { date }, undefined, date);
 };
 
 /**
  * Log daily record creation
  */
-export const logDailyRecordCreated = (date: string, copiedFrom?: string): void => {
-    logAuditEvent(getCurrentUserEmail(), 'DAILY_RECORD_CREATED', 'dailyRecord', date, { date, copiedFrom }, undefined, date);
+export const logDailyRecordCreated = (date: string, copiedFrom?: string): Promise<void> => {
+    return logAuditEvent(getCurrentUserEmail(), 'DAILY_RECORD_CREATED', 'dailyRecord', date, { date, copiedFrom }, undefined, date);
 };

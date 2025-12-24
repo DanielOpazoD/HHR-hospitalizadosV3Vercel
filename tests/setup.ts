@@ -85,6 +85,10 @@ vi.mock('firebase/auth', () => ({
     signInWithEmailAndPassword: vi.fn().mockResolvedValue({ user: mockUser }),
     signOut: vi.fn().mockResolvedValue(undefined),
     onIdTokenChanged: vi.fn(() => vi.fn()),
+    GoogleAuthProvider: class {
+        static credential = vi.fn();
+        setCustomParameters = vi.fn();
+    },
 }));
 
 // Mock auditService globally to prevent Firebase dependency chain execution
