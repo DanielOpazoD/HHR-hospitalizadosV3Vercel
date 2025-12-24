@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { useNotification } from '../../context/NotificationContext';
+import { useNotification } from '../../context/UIContext';
 import { useDailyRecordContext } from '../../context/DailyRecordContext';
 import { useAuthState } from '../../hooks/useAuthState';
 import { useDemoMode } from '../../context/DemoModeContext';

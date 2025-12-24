@@ -8,7 +8,7 @@ import { DailyRecord } from '@/types';
 // Mock dependencies
 vi.mock('@/services/repositories/DailyRecordRepository');
 vi.mock('@/services/storage/localStorageService');
-vi.mock('@/context/NotificationContext', () => ({
+vi.mock('@/context/UIContext', () => ({
     useNotification: () => ({
         error: vi.fn(),
         success: vi.fn(),

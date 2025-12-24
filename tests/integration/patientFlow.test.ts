@@ -20,7 +20,7 @@ vi.mock('@/services/storage/localStorageService', () => ({
     getRecordFromLocalStorage: vi.fn()
 }));
 
-vi.mock('@/context/NotificationContext', () => ({
+vi.mock('@/context/UIContext', () => ({
     useNotification: () => ({
         success: vi.fn(),
         warning: vi.fn(),
