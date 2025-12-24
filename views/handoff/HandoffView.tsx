@@ -16,7 +16,7 @@ import { HandoffCudyrPrint } from './HandoffCudyrPrint';
 import { HandoffPrintHeader } from './HandoffPrintHeader';
 import { HandoffShiftSelector } from './HandoffShiftSelector';
 
-import { useNotification } from '@/context/NotificationContext';
+import { useNotification } from '@/context/UIContext';
 import { useConfirmDialog } from '@/context/ConfirmDialogContext';
 import { useHandoffLogic } from '@/hooks';
 

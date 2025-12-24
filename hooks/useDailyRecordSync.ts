@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DailyRecord } from '../types';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../context/UIContext';
 import { validateDailyRecord } from '../schemas/validation';
 import { DailyRecordPatchLoose } from './useDailyRecordTypes';
 import { logFirebaseError, getUserFriendlyErrorMessage } from '../services/utils/errorService';

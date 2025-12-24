@@ -12,7 +12,7 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../context/UIContext';
 import {
     logDailyRecordCreated,
     logDailyRecordDeleted

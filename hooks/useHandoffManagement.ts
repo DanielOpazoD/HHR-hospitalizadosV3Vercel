@@ -6,7 +6,7 @@
 import { useCallback } from 'react';
 import { DailyRecord } from '../types';
 import { BEDS } from '../constants';
-import { useNotification } from '../context/NotificationContext';
+import { useNotification } from '../context/UIContext';
 import { getPreviousDay } from '../services/repositories/DailyRecordRepository';
 import { formatHandoffMessage, sendWhatsAppMessage } from '../services/integrations/whatsapp/whatsappService';
 

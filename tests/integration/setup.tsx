@@ -7,7 +7,7 @@ import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { vi } from 'vitest';
 import { DailyRecord, PatientData, Specialty, PatientStatus } from '@/types';
-import { NotificationProvider } from '@/context/NotificationContext';
+import { NotificationProvider } from '@/context/UIContext';
 import { ConfirmDialogProvider } from '@/context/ConfirmDialogContext';
 import { DailyRecordProvider } from '@/context/DailyRecordContext';
 import { DailyRecordContextType } from '@/hooks/useDailyRecord';
