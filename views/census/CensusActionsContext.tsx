@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useCallback } fr
 import { DischargeData, TransferData } from '../../types';
 import { EVACUATION_METHODS, RECEIVING_CENTERS } from '../../constants';
 import { useDailyRecordContext } from '../../context/DailyRecordContext';
-import { useConfirmDialog } from '../../context/ConfirmDialogContext';
+import { useConfirmDialog } from '../../context/UIContext';
 
 // --- Types ---
 

@@ -17,7 +17,7 @@ import { HandoffPrintHeader } from './HandoffPrintHeader';
 import { HandoffShiftSelector } from './HandoffShiftSelector';
 
 import { useNotification } from '@/context/UIContext';
-import { useConfirmDialog } from '@/context/ConfirmDialogContext';
+import { useConfirmDialog } from '@/context/UIContext';
 import { useHandoffLogic } from '@/hooks';
 
 interface HandoffViewProps {

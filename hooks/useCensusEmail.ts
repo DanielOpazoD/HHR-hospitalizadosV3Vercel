@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useConfirmDialog } from '../context/ConfirmDialogContext';
+import { useConfirmDialog } from '../context/UIContext';
 import { DailyRecord } from '../types';
 import { buildCensusEmailBody, CENSUS_DEFAULT_RECIPIENTS } from '../constants/email';
 import { formatDate, getMonthRecordsFromFirestore, triggerCensusEmail } from '../services';

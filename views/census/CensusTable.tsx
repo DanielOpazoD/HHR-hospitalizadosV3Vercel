@@ -3,7 +3,7 @@ import { DailyRecord } from '../../types';
 import { BEDS } from '../../constants';
 import { PatientRow } from '../../components/census/PatientRow';
 import { useCensusActions } from './CensusActionsContext';
-import { useConfirmDialog } from '../../context/ConfirmDialogContext';
+import { useConfirmDialog } from '../../context/UIContext';
 import { Trash2, Baby } from 'lucide-react';
 import clsx from 'clsx';
 

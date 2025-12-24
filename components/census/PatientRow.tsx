@@ -3,7 +3,7 @@ import { BedDefinition, PatientData, DeviceDetails } from '../../types';
 import { AlertCircle, GitBranch, User } from 'lucide-react';
 import clsx from 'clsx';
 import { useDailyRecordContext } from '../../context/DailyRecordContext';
-import { useConfirmDialog } from '../../context/ConfirmDialogContext';
+import { useConfirmDialog } from '../../context/UIContext';
 import { DemographicsModal } from '../modals/DemographicsModal';
 
 // Sub-components
